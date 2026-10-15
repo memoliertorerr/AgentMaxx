@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import type { SettingsChange, View } from '../core/ipc'
+import type { SettingsChange, SettingsTab, View } from '../core/ipc'
+import { parseRoute, type Route } from '../core/settingsView'
 import { Footer } from './components/Footer'
-import { BackIcon } from './components/Icons'
 import { ProviderCard } from './components/ProviderCard'
+import { Welcome } from './components/Welcome'
+import { SettingsScreen } from './components/settings/SettingsScreen'
 import { useAppState } from './hooks/useAppState'
 import { useNow } from './hooks/useNow'
 
 const TOAST_MS = 2500
 
 export function App(): React.JSX.Element {
-  const [view, setView] = useState<View>('dashboard')
+  const [route, setRoute] = useState<Route>({ screen: 'dashboard' })
   const [toast, setToast] = useState<string | undefined>(undefined)
-  const navigate = useCallback((next: View) => setView(next), [])
+  const navigate = useCallback((next: View) => setRoute(parseRoute(next)), [])
   const state = useAppState(navigate)
   const now = useNow()
   const content = useRef<HTMLDivElement>(null)
@@ -28,10 +30,16 @@ export function App(): React.JSX.Element {
     return () => clearTimeout(timer)
   }, [toast])
 
+  const openSettings = useCallback((tab: SettingsTab | 'dashboard', providerId?: string) => {
+    setRoute(tab === 'dashboard' ? { screen: 'dashboard' } : { screen: 'settings', tab, ...(providerId ? { providerId } : {}) })
+  }, [])
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        if (view !== 'dashboard') setView('dashboard')
+        // Back out one level: a provider's metrics → the list → the dashboard → hide.
+        if (route.screen === 'settings' && route.providerId) setRoute({ screen: 'settings', tab: 'providers' })
+        else if (route.screen === 'settings') setRoute({ screen: 'dashboard' })
         else window.usagemaxx.hidePopup()
       } else if (event.key === 'F5') {
         event.preventDefault()
@@ -40,13 +48,15 @@ export function App(): React.JSX.Element {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [view])
+  }, [route])
 
   // The popup sizes itself to its content (main clamps it); past the cap, the list scrolls.
   const reportHeight = useCallback(() => {
     if (!content.current) return
     const footerHeight = footer.current?.offsetHeight ?? 0
-    window.usagemaxx.resizePopup(content.current.scrollHeight + footerHeight + 2)
+    // Round up: scrollHeight is rounded, and a fractional overflow would still show a scrollbar.
+    const contentHeight = Math.ceil(Math.max(content.current.scrollHeight, content.current.getBoundingClientRect().height))
+    window.usagemaxx.resizePopup(contentHeight + footerHeight + 2)
   }, [])
 
   useLayoutEffect(reportHeight)
@@ -61,26 +71,21 @@ export function App(): React.JSX.Element {
   if (!state) return <div className="app" />
 
   const enabled = state.providers.filter((provider) => provider.enabled)
+  const screen = state.firstRun ? 'welcome' : route.screen === 'settings' ? `settings-${route.tab}` : 'dashboard'
 
   return (
-    <div className="app" data-ready="true" data-view={view}>
+    <div className="app" data-ready="true" data-view={screen}>
       <div className="scroll">
         <div className="content" ref={content}>
-          {view === 'settings' ? (
-            <>
-              <div className="screen-header">
-                <button className="icon-button" aria-label="Back" onClick={() => setView('dashboard')}>
-                  <BackIcon />
-                </button>
-                <h1>Settings</h1>
-              </div>
-              <div className="empty">Settings arrive in a later step of the build.</div>
-            </>
+          {state.firstRun ? (
+            <Welcome state={state} complete={(enabledProviders) => void change({ kind: 'completeFirstRun', enabledProviders })} />
+          ) : route.screen === 'settings' ? (
+            <SettingsScreen state={state} tab={route.tab} providerId={route.providerId} navigate={openSettings} change={change} notify={setToast} />
           ) : enabled.length === 0 ? (
             <div className="empty">
               <h2>No Providers On</h2>
               <span>Pick the AI tools you use to see their limits here.</span>
-              <button className="primary-button" onClick={() => setView('settings')}>
+              <button className="primary-button" onClick={() => openSettings('providers')}>
                 Choose Providers
               </button>
             </div>
@@ -92,7 +97,7 @@ export function App(): React.JSX.Element {
         </div>
       </div>
       <div ref={footer}>
-        <Footer state={state} now={now} onOpenSettings={() => setView('settings')} />
+        <Footer state={state} now={now} onOpenSettings={() => openSettings('providers')} />
       </div>
       {toast ? (
         <div className="toast" role="status">

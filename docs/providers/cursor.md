@@ -29,10 +29,16 @@ expire, UsageMaxx refreshes it but keeps the new token in memory instead of writ
 database of an app that may be running. Upstream does write it back. Cursor renews its own token
 the next time it runs.
 
+With **Read-only Logins** on (Settings → General), UsageMaxx doesn't renew the token at all. A
+token that's about to expire is still used as is; once it has expired, or the API rejects it, the
+card shows "Login expired. Open Cursor to renew it, then refresh."
+
 ## Troubleshooting
 
 - **"Not logged in"**: open Cursor and sign in, then refresh.
 - **"Session expired" / "Token expired"**: sign in to Cursor again.
+- **"Login expired. Open Cursor…"**: Read-only Logins is on and the token expired. Opening Cursor
+  renews it; then refresh. Or turn Read-only Logins off.
 - **"Couldn't read Cursor's login database"**: the file is locked or unreadable, usually during
   a Cursor update. Wait a moment and refresh.
 - **Some metrics show "No data"**: Cursor leaves out fields depending on the plan. Missing ones
@@ -45,7 +51,7 @@ the next time it runs.
   (required), plus `GetPlanInfo`, `GetCreditGrantsBalance`, and `GetSandUsageStatus` (Grok Bot),
   all optional.
 - `POST https://api2.cursor.sh/oauth/token` to refresh the access token; `shouldLogout` means the
-  session ended.
+  session ended. Never called with Read-only Logins on.
 - With the web session cookie (`WorkosCursorSessionToken`, derived from the token):
   `https://cursor.com/api/auth/stripe` (prepaid balance) and, for Team/Enterprise accounts
   without usable plan data, `https://cursor.com/api/usage-summary` plus

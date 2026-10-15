@@ -142,6 +142,8 @@ export interface MeterOptions {
   sessionStartSignal?: SessionStartSignal
   resetMode?: ResetMode
   dateFormat?: DateFormatOptions
+  /** Word after a dollar limit ("purchased"); "limit" when unset. */
+  limitNoun?: string
 }
 
 /**
@@ -224,7 +226,7 @@ export function progressTrailing(line: ProgressLine, options: MeterOptions): str
       const amount = Number.isInteger(line.limit)
         ? `$${new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(line.limit)}`
         : formatNumber(line.limit, 'dollars', 'full')
-      return `${amount} limit`
+      return `${amount} ${options.limitNoun ?? 'limit'}`
     }
     case 'count':
       return line.format.suffix

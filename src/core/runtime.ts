@@ -39,7 +39,10 @@ export interface CommandRunner {
 
 /** Keys the user saved in Settings → API Keys (decrypted on demand). */
 export interface ApiKeyStore {
+  /** The saved key, decrypted. Throws `ProviderError` when it exists but can't be decrypted. */
   get(providerId: string): Promise<string | undefined>
+  /** Whether a key is saved, without decrypting it (first-run detection). */
+  has(providerId: string): Promise<boolean>
 }
 
 export interface ProviderContext {
@@ -57,6 +60,11 @@ export interface ProviderContext {
   apiKeys: ApiKeyStore
   /** True when the user asked for this refresh (Refresh Now) rather than the timer. */
   manual: boolean
+  /**
+   * False when Read-only Logins is on (and in demo mode): providers must never call a token
+   * refresh endpoint or write a credential file, and show their re-login hint instead.
+   */
+  allowTokenRefresh: boolean
 }
 
 export interface ProviderRuntime extends ProviderEntry {

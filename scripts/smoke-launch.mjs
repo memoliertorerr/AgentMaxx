@@ -9,6 +9,8 @@
 //   node scripts/smoke-launch.mjs --screenshot --theme dark --name popup-dark
 //   node scripts/smoke-launch.mjs --screenshot --scroll-bottom   also capture the end of the list
 //   node scripts/smoke-launch.mjs --screenshot --expand          open the first card's caret first
+//   node scripts/smoke-launch.mjs --screenshot --view <view>     screenshot another screen:
+//       welcome | settings | providers | keys | general | about | providers:<id> (demo ids: demo-claude, …)
 //
 // Every run uses a fresh profile under test-results/, so screenshots are reproducible and the
 // real user profile is never touched.
@@ -26,7 +28,7 @@ const executablePath = option('--exe')
 const screenshot = args.includes('--screenshot')
 const theme = option('--theme')
 const view = option('--view')
-const name = option('--name') ?? (theme ? `popup-${theme}` : 'popup-demo')
+const name = option('--name') ?? ['popup', view?.replace(/[^a-z0-9-]/gi, '-') ?? (theme ? undefined : 'demo'), theme].filter(Boolean).join('-')
 
 const READY_MARKER = 'usagemaxx:ready'
 const TIMEOUT_MS = 60_000
@@ -37,8 +39,14 @@ const profileDir = path.join(resultsDir, `smoke-profile-${name}`)
 rmSync(profileDir, { recursive: true, force: true })
 mkdirSync(profileDir, { recursive: true })
 
+// Screenshot runs never see real API keys from this shell; the keys view gets an obvious fake one,
+// so it shows both an environment key and an unset one.
+const API_KEY_VARIABLES = ['OPENROUTER_API_KEY', 'OPENROUTER_KEY', 'ZAI_API_KEY', 'GLM_API_KEY']
+const baseEnv = Object.fromEntries(Object.entries(process.env).filter(([key]) => !(screenshot && API_KEY_VARIABLES.includes(key))))
+
 const env = {
-  ...process.env,
+  ...baseEnv,
+  ...(screenshot && view === 'keys' ? { OPENROUTER_API_KEY: 'sk-or-v1-demo-not-a-real-key' } : {}),
   USAGEMAXX_SMOKE: '1',
   USAGEMAXX_USER_DATA: profileDir,
   ...(screenshot ? { USAGEMAXX_DEMO: '1', USAGEMAXX_SMOKE_SHOW: '1' } : {}),

@@ -33,10 +33,16 @@ When the access token is about to expire, UsageMaxx refreshes it the way Claude 
 writes back only the token fields, keeping everything else in the file, such as MCP logins. If
 Claude Code replaced the login in the meantime, the newer login is left alone.
 
+With **Read-only Logins** on (Settings → General), UsageMaxx never renews the login and never
+writes the file. A token that's about to expire is still used as is; once it has expired, or the
+API rejects it, the card shows "Login expired. Run `claude` to sign in again, then refresh." and Claude Code renews it the next time you run it.
+
 ## Troubleshooting
 
 - **"Not logged in"**: run `claude` and sign in, then refresh.
 - **"Session expired" / "Token expired"**: run `claude` again so it renews the login, then refresh.
+- **"Login expired. Run `claude`…"**: Read-only Logins is on and the login expired. Run `claude`
+  (any command renews it), then refresh. Turn Read-only Logins off to let UsageMaxx renew it.
 - **"Re-login for live usage"**: the saved login lacks the `user:profile` access needed to read
   limits (an inference-only token). Run `claude` and sign in again.
 - **"Updates blocked by Anthropic"**: the usage API is rate-limiting requests. UsageMaxx keeps
@@ -52,7 +58,7 @@ Claude Code replaced the login in the meantime, the newer login is left alone.
 - `GET https://api.anthropic.com/api/oauth/profile` for the plan, at most once per access token,
   and only after a usage request succeeded.
 - `POST https://platform.claude.com/v1/oauth/token` to refresh an expiring token (and once after
-  a 401/403). `invalid_grant` means the session ended.
+  a 401/403). `invalid_grant` means the session ended. Never called with Read-only Logins on.
 - `CLAUDE_CODE_CUSTOM_OAUTH_URL` and `CLAUDE_CODE_OAUTH_CLIENT_ID` are honored, as Claude Code
   honors them.
 

@@ -12,7 +12,7 @@
 > countdowns, pace colors, error and stale states; a 5-minute refresh loop with an on-disk
 > cache; live quota providers for Claude, Codex, Cursor, Copilot, OpenRouter, Z.ai, Grok,
 > Devin, OpenCode Go, and Ollama Cloud; a settings view (providers on/off, pinned metrics, API
-> keys, launch at login); CI that tests on Windows, builds the NSIS installer, and takes a
+> keys, launch at login, read-only logins); CI that tests on Windows, builds the NSIS installer, and takes a
 > smoke screenshot on a real Windows runner; README and docs.
 >
 > **Explicitly NOT in scope** (designed, deferred — see **Later**): local spend tiles (Today /
@@ -50,13 +50,14 @@
 | UM5 | Dashboard UI: provider cards, meters, pace colors, resets, errors, footer | Opus | auto | ✅ done |
 | UM6 | Providers: Claude + Codex | Opus | auto | ✅ done |
 | UM7 | Providers: Cursor + Copilot (incl. Windows Credential Manager reader) | Opus | auto | ✅ done |
-| UM8 | Providers: OpenRouter + Z.ai + encrypted API-key storage | Sonnet | auto | ⬜ todo |
-| UM9 | Providers: Grok + Devin + OpenCode Go + Ollama Cloud | Opus | auto | ⬜ todo |
-| UM10 | Settings view: providers, pins, API keys, launch at login, first-run welcome | Sonnet | auto | ⬜ todo |
+| UM8 | Providers: OpenRouter + Z.ai + encrypted API-key storage | Sonnet | auto | ✅ done |
+| UM9 | Providers: Grok + Devin + OpenCode Go + Ollama Cloud | Opus | auto | ✅ done |
+| UM10 | Settings view: providers, pins, API keys, launch at login, first-run welcome | Sonnet | auto | ✅ done |
+| UM10.1 | Read-only logins: never refresh tokens; show the re-login hint | Opus | auto | ✅ done |
 | UM11 | Windows packaging in CI: NSIS installer artifact + smoke screenshot on `windows-latest` | Sonnet | auto | ⬜ todo |
 | UM12 | README, user + developer docs, upstream/PR notes, final `CLAUDE.md` pass | Sonnet | checkpoint | ⬜ todo |
 
-**Overall status: Phases 1–2 (UM0–UM7) done; PR #1 (phase 1 → main) and the phase-2 PR (→ um/p1-foundation) are open. Next is phase 3 from UM8 (OpenRouter + Z.ai). The sequence goes
+**Overall status: Phases 1–2 (UM0–UM7) done; PR #1 (phase 1 → main) and the phase-2 PR (→ um/p1-foundation) are open. Phase 3 (UM8–UM10.1) is on `um/p3-providers-settings`, PR into `um/p2-dashboard`: UM8–UM10.1 done (UM10.1 added mid-plan). Phase 4 (`um/p4-ship`) has UM11 done and picks up UM10.1 by merging phase 3 before UM12. The sequence goes
 foundation → first runnable tray app with demo data at UM4 → dashboard and real providers →
 settings → Windows installer → docs, ending at a human checkpoint on a real Windows PC.**
 
@@ -72,8 +73,9 @@ mechanical (CI packaging, docs) and fits Sonnet.
    shapes (`src/core/types.ts`), the refresh rules, and the demo screenshot.
 2. **UM5 → UM7** · Opus · branch `um/p2-dashboard` → PR into `um/p1-foundation` — review the
    dashboard screenshots and the Claude/Codex/Cursor/Copilot mapper fixtures.
-3. **UM8 → UM10** · Opus · branch `um/p3-providers-settings` → PR into `um/p2-dashboard` —
-   review API-key handling (DPAPI, never plaintext) and the settings screenshots.
+3. **UM8 → UM10.1** · Opus · branch `um/p3-providers-settings` → PR into `um/p2-dashboard` —
+   review API-key handling (DPAPI, never plaintext), the settings screenshots, and the
+   read-only logins switch (UM10.1, added mid-plan).
 4. **UM11 → UM12** · Sonnet · branch `um/p4-ship` → PR into `um/p3-providers-settings` —
    review the Windows CI screenshot, the installer artifact, and the README. Ends in the human
    Windows checks.
@@ -884,6 +886,33 @@ Paste the verify output and `git log -1 --stat`. If it is still red after two ho
 attempts, stop and report — never commit red, never weaken a check to get green.
 ```
 
+**Implementation notes (2026-10-15):**
+
+- **The key catalog lives in `src/core/apiKeys.ts`**, which is renderer-safe: the providers, their
+  environment fallbacks, the status, and key validation. UM10's API Keys screen imports it.
+  `src/main/apiKeys.ts` (`ApiKeyVault`) takes the cipher as an injected `KeyCipher`, so it has no
+  Electron import and is tested under Node. `src/main/index.ts` binds it to `safeStorage`.
+- **Key status has a fourth state, `overrideActive`**, which upstream uses for a saved key that
+  overrides an environment key ("Custom Key"; clearing it falls back to the environment).
+- **`OPENROUTER_KEY` is a second OpenRouter fallback**, after `OPENROUTER_API_KEY`, as upstream
+  does.
+- **`ApiKeyStore` gained `has()`.** Key status and `hasLocalCredentials` check for a saved key
+  without decrypting it, so first-run detection and the settings screen never call DPAPI (or the
+  macOS Keychain in dev runs). A key that exists but won't decrypt (another account or PC) is a
+  `credentialAccess` error telling the user to save it again.
+- **Linux's `basic_text` safeStorage backend counts as unavailable**, because it's obfuscation, not
+  encryption. Windows uses DPAPI.
+- **Saving or clearing a key refreshes that provider** at once when it's enabled.
+- **Metric descriptors gained `limitNoun`** (upstream `WidgetData.limitNoun`), so OpenRouter's
+  Credits meter reads "$100 purchased". Ollama's Monthly meter (UM9) uses it too ("included").
+- **Upstream's macOS config files** (`~/.config/openusage/<provider>.json`) aren't read. The
+  encrypted store replaces them, and the product name mustn't appear in paths.
+- **Z.ai with an empty `limits` array returns no lines**, so its meters read "No data" instead of
+  upstream's separate "No usage data" status badge. "No active GLM Coding Plan" is a thrown
+  `notAvailable` error with upstream's copy, matching upstream's error snapshot.
+- **Not verified:** live calls (fixtures follow upstream's tests and captured payloads), and
+  DPAPI itself, which only runs in the packaged app on Windows (UM12 human check).
+
 ---
 
 ### UM9 — Providers: Grok + Devin + OpenCode Go + Ollama Cloud · Opus · auto
@@ -920,6 +949,35 @@ everything as one commit: "um-step-9: Grok, Devin, OpenCode Go, and Ollama provi
 the verify output and `git log -1 --stat`. If it is still red after two honest fix attempts,
 stop and report — never commit red, never weaken a check to get green.
 ```
+
+**Implementation notes (2026-10-15):**
+
+- **Registry order** is Claude, Codex, Cursor, then alphabetical: Copilot, Devin, Grok, Ollama,
+  OpenCode, OpenRouter, Z.ai. Metric defaults follow upstream's `DefaultLayout` (Ollama Monthly is
+  the only new default pin; Grok Extra Usage, Devin Extra Balance, and Ollama Purchased Credits sit
+  behind the caret).
+- **Grok** writes a rotated token back like Claude does: only that account's token fields, merged
+  into the file as it is now, and never over a login the CLI changed meanwhile. A rotation that
+  can't be written stays in memory, keyed by the login on disk, so the next refresh doesn't spend
+  a refresh token the server already rotated. The team-account warning drops upstream's mention of
+  spend tiles (Later). The refresh body is form-encoded like upstream (`%20`, RFC 3986), via a new
+  `formEncode` helper.
+- **Devin** checks `%APPDATA%\devin`, then `%USERPROFILE%\.local\share\devin`, then
+  `%LOCALAPPDATA%\devin` (`credentials.toml`). Pane's source reads the `%APPDATA%` path first and
+  `%LOCALAPPDATA%` too, so both are in. The Devin app's `state.vscdb` source is ported at
+  `%APPDATA%\Devin\User\globalStorage\state.vscdb`, which is unconfirmed. Unlike upstream, a
+  network failure on every source surfaces as a connection error instead of "quota data
+  unavailable".
+- **OpenCode reads only OpenCode 1's `auth.json`**, as the prompt names. OpenCode 2's credential
+  tables in `opencode*.db` need a generic SQLite query and a directory listing that the context
+  doesn't have yet (see Deferred follow-ups). Without spend tiles, a key with no Go subscription is
+  an error rather than an empty card.
+- **Ollama** parses `openssh-key-v1` itself, wraps the seed in a PKCS#8 DER, and signs with
+  `crypto.sign(null, …)`. Tests build keys the way `ssh-keygen` does and verify signatures against
+  the public half. `hasLocalCredentials` is always false and `autoEnable` is false; UM10's first-run
+  probe must honor both.
+- **Not verified:** live calls (fixtures follow upstream's tests and captured payloads), and the
+  Windows paths beyond Pane's Devin path. These are UM12 human checks.
 
 ---
 
@@ -958,6 +1016,105 @@ report — never commit red, never weaken a check to get green.
 This ends phase 3: push the branch, open the PR into um/p2-dashboard using the PR description
 template, wait for CI, then stop (unless told to run on).
 ```
+
+**Implementation notes (2026-10-15):**
+
+- **Pure logic lives in `src/core/settingsView.ts`** (routes and tabs, `welcomeChoices`,
+  `metricSettings` with the pin rule, `providerSummary`, key status text) and `src/core/detect.ts`
+  (parallel `hasLocalCredentials` probes, 10 s timeout each, failures count as not found). Both are
+  tested; the components only render them.
+- **Settings is one screen with four tabs** (Providers, API Keys, General, About), and a provider's
+  metrics open as a second level under Providers. The smoke script's `--view` takes `welcome`,
+  `settings`, `providers`, `providers:<id>`, `keys`, `general`, and `about`; each screenshot gets
+  its own name and fresh profile. Demo providers now report detection results (Devin and Grok
+  "not found"), so the welcome screenshot shows both groups.
+- **The welcome screen never preselects a provider with `autoEnable: false`** (Ollama), even if
+  its probe says yes.
+- **Launch at login works only in packaged builds.** In a development run on macOS it would
+  register Electron.app in the developer's real login items, outside the repo, so the switch is
+  disabled there with "Works in the installed app." On Windows, the packaged app uses
+  `app.setLoginItemSettings`.
+- **API key status names the environment variable in use** (`ApiKeyEntry.environmentVariable`).
+  Screenshot runs strip real key variables from the environment and give the keys view an obvious
+  fake one. No screenshot saves a key, because that would reach the macOS Keychain.
+- **The tray already had "Settings"** (UM4), and its icon and tooltip already redraw on every
+  published state, so pin changes show at once without new tray code.
+- **Fixed the popup's auto-height.** It reported the rounded `scrollHeight`, so content with a
+  fractional height (415.3 px on API Keys) overflowed by under a pixel and showed a scrollbar. It
+  now rounds up the measured height.
+- **New styles are in `src/renderer/controls.css` and `settings.css`**, because `styles.css` was
+  already at 524 lines, past the ~500-line guide. Splitting `styles.css` itself is left alone.
+- **Verified (macOS):** screenshots of the welcome screen, the provider list, Claude's and (dark)
+  Codex's metrics with the pin-limit message, API Keys, General, and About, plus the dashboard
+  regression. A throwaway Playwright run clicked through welcome → dashboard, a provider switch,
+  unpin/pin up to the limit, a metric toggle, Esc levels, and Used/Left, and checked
+  `settings.json`. **Not verified:** launch at login (packaged Windows only, UM12) and saving a key
+  through DPAPI (UM12).
+
+---
+
+### UM10.1 — Read-only logins · Opus · auto
+
+> **Added mid-plan 2026-10-15** — requested by the user after a terms-of-service review; reduces how much the app acts as the official clients.
+
+**Verify:** `npm run verify` green with tests showing, for Claude, Codex, Cursor, and Grok with
+`allowTokenRefresh: false`: an expired token throws `authExpired` with that provider's re-login
+hint, sends no request to its refresh URL, and writes no file; an expiring-but-unexpired token is
+tried once without refreshing; a 401/403 throws the hint without refreshing. The existing
+refresh-on tests pass unchanged. Settings round-trip `readOnlyLogins` (default false, tolerant
+parsing); a demo screenshot of Settings → General shows the "Read-only Logins" switch.
+**Commit:** `um-step-10.1: read-only logins setting`
+
+```text
+Add a "Read-only Logins" setting: when it's on, UsageMaxx never renews a provider's login and
+never writes a credential file; an expired login shows that provider's re-login hint instead.
+
+- src/core/settings.ts: `readOnlyLogins: boolean`, default false (upstream behavior), parsed
+  tolerantly like the other booleans. src/core/ipc.ts: a `readOnlyLogins` settings change,
+  validated in parseSettingsChange and applied in applySettingsChange.
+- src/core/runtime.ts: ProviderContext gains `allowTokenRefresh: boolean`. src/main/context.ts
+  sets it from the setting (false in demo mode); tests/helpers/fakes.ts defaults it to true.
+- Claude, Codex, Cursor, and Grok check it. With refresh off they never call the refresh
+  endpoint and never write a credential file. An expired token, or a 401/403, throws
+  ProviderError('authExpired', <hint>): Claude "Login expired. Run `claude` to sign in again,
+  then refresh."; Codex "Login expired. Run `codex` to sign in again, then refresh."; Cursor
+  "Login expired. Open Cursor to renew it, then refresh."; Grok "Login expired. Run `grok login`
+  to sign in again, then refresh." A token that is expiring but not yet expired is still tried
+  once without refreshing.
+- Settings → General: a "Read-only Logins" switch described as "Never renew provider logins.
+  When one expires, its card asks you to sign in again with the provider's own app or CLI."
+- Tests: per affected provider with refresh off, no request to its refresh URL, no fs writes,
+  and the hint message. Keep the refresh-on tests unchanged.
+
+Update docs/settings.md, docs/providers/{claude-usage,codex,cursor,grok}.md ("Under the hood"
+and troubleshooting), and CLAUDE.md → Conventions.
+
+Run npm run verify and a demo screenshot of Settings → General. If green, flip UM10.1 to ✅ in
+docs/BUILD_PLAN.md and commit everything as one commit: "um-step-10.1: read-only logins
+setting". Paste the verify output and `git log -1 --stat`. If it is still red after two honest
+fix attempts, stop and report — never commit red, never weaken a check to get green.
+```
+
+**Implementation notes (2026-10-15):**
+
+- **Done as specified.** Each provider guards both places a login could be renewed: before
+  refreshing an expiring token, and in the 401/403 retry callback. The refresh functions
+  themselves (Claude `rotate`, Codex `rotate`, Cursor `refreshAccessToken`) check the flag again,
+  so no future caller can renew a login by accident. Grok's refresh helper returns nothing when
+  renewal is off, which reuses its existing loop: an expiring token is probed as is, and an expired
+  one is skipped and reported with the hint.
+- **"Expired" means a known expiry has passed.** Claude uses `expiresAt`; Codex, Cursor, and Grok
+  use the JWT `exp`. A token whose expiry can't be read is tried once rather than refused.
+- **The hints follow each provider's existing wording**: "Run `codex` …" (as Codex's other
+  messages say), and Cursor's "Open Cursor to renew it, then refresh."
+- **The tests are in one file, `src/core/providers/readOnlyLogins.test.ts`**: three cases (expired,
+  expiring, 401) for each of the four providers. Each asserts no request to the refresh URL, no
+  file write, and the hint. With the flag flipped to `true`, all 12 fail, so they catch a regression.
+  The refresh-on tests are unchanged and still pass.
+- **`allowTokenRefresh` reads the setting on every refresh**, so switching it applies to the next
+  refresh. Until the store exists at startup, it reads as "no renewal". Demo mode always has it off.
+- **Verified:** `npm run verify` (34 files, 311 tests) and a demo screenshot of Settings → General
+  with the switch. **Not verified:** a real expired login on Windows (UM12 human check).
 
 ---
 
@@ -1002,8 +1159,10 @@ before it, each with a um-step-11 prefix and a description). Paste the verify ou
 screenshot from the Windows CI run (`docs/assets/screenshot.png`, demo data), Install
 (installer from the CI artifact or a release; SmartScreen "More info → Run anyway"; Windows 11
 "show the icon on the taskbar" steps), Supported providers with Windows credential sources,
-Privacy, Building from source, Relationship to OpenUsage, License. `docs/README.md` indexes
-every doc; `docs/upstream.md` explains the PR situation and holds a draft issue for the user.
+Privacy, Building from source, Relationship to OpenUsage, Risks and terms (unofficial,
+undocumented endpoints per provider, the provider terms that may restrict this with linked
+sources, what limits the risk, Read-only Logins, "use at your own risk; not legal advice"),
+License. `docs/README.md` indexes every doc; `docs/upstream.md` explains the PR situation and holds a draft issue for the user.
 **Human check:** install the CI artifact on a Windows PC and walk the checklist in the PR.
 **Commit:** `um-step-12: README, user docs, and upstream notes`
 
@@ -1019,7 +1178,26 @@ Write the user-facing docs.
   from on Windows), Privacy (credentials stay local, only provider APIs are called, no
   telemetry, API keys encrypted with Windows DPAPI), Building from source (npm ci, npm run
   dev, npm run dist:win), Relationship to OpenUsage (unofficial port, MIT credit, trademark
-  note, link upstream; other Windows ports exist — Pane, CrossUsage), License.
+  note, link upstream; other Windows ports exist — Pane, CrossUsage), Risks and terms (below),
+  License.
+- README.md "Risks and terms" (added mid-plan 2026-10-15 at the user's request), plain and
+  factual: UsageMaxx is unofficial and not affiliated with OpenUsage or any provider. Claude,
+  Codex, Cursor, Copilot, Z.ai, Grok, and Devin are read through undocumented internal endpoints
+  with the login the provider's own CLI or app stored; UsageMaxx identifies itself as those
+  clients do and, unless Read-only Logins is on, renews expired logins with their client IDs.
+  OpenRouter, Ollama Cloud, and OpenCode Go use documented APIs. Provider terms may restrict
+  this: Anthropic's Claude Code legal page said in February 2026 that subscription OAuth tokens
+  are only for Claude Code and claude.ai; Cursor's terms forbid reverse engineering and its staff
+  have said private endpoints are off-limits; no provider has approved this app, and the
+  endpoints can change or be blocked at any time. What limits the risk: it only reads usage
+  (never sends AI requests on your subscription), refreshes each provider about once every 5
+  minutes, backs off when rate-limited, sends tokens only to the provider's own servers, and never
+  writes Cursor's database; Read-only Logins removes token renewal entirely. Use at your own risk;
+  this isn't legal advice. Link the sources:
+  https://www.theregister.com/software/2026/02/20/anthropic-clarifies-ban-on-third-party-tool-access-to-claude/5014546 ,
+  https://forum.cursor.com/t/does-using-oh-my-pi-s-cursor-provider-or-an-openai-compatible-proxy-to-the-same-endpoints-violate-cursor-s-tos/167778 ,
+  and GitHub's Acceptable Use Policies
+  (https://docs.github.com/en/site-policy/acceptable-use-policies/github-acceptable-use-policies).
 - docs/README.md: index of every doc. docs/upstream.md: why this isn't an upstream PR
   (maintainer replies on #374 and #1064, closed Windows PRs, issue-first policy, the rule
   against AI-generated commit messages), what a contribution could realistically be (a
@@ -1049,6 +1227,17 @@ um/p3-providers-settings using the PR description template with the Windows chec
   Star for menu bar, Refresh, and Customize on right-click. UM5 has hover refresh and click
   toggles but no context menus; UM10's settings view covers hide and pin. Adding them needs an
   IPC call that opens a native `Menu` from main at the cursor.
+- **New providers in later versions** (surfaced by UM10). Upstream runs the first-run detection once
+  for each provider an update adds (missing from both `enabledProviders` and `knownProviders`),
+  turning it on only when its credentials are found and `autoEnable` allows it. v0.1 has no earlier
+  version to upgrade from, so this isn't wired yet; it belongs in `AppStore.create` with a test.
+- **Reset and Reset All Customization** (surfaced by UM10). Upstream's per-provider Reset and the
+  Reset All button (which re-runs detection) aren't built; neither is undo.
+- **OpenCode 2 credentials** (surfaced by UM9). OpenCode 2 keeps the `opencode-go` key in each
+  `opencode*.db`'s `credential` table (after the `import_legacy_credentials` migration) and leaves
+  OpenCode 1's `auth.json` behind, so a logout or new login made in OpenCode 2 isn't seen. Porting
+  upstream's `OpenCodeAuthStore.goAPIKey` needs a generic read-only query on `SqliteReader` and a
+  directory listing on `FileSystem` (to find every `opencode*.db`).
 - *(Steps add to this list as they surface out-of-scope friction.)*
 
 ---

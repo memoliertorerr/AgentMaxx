@@ -91,6 +91,8 @@ export interface FakeContextOptions {
   http?: FakeHttp
   fs?: MemoryFileSystem
   sqlite?: FakeSqlite
+  /** Defaults to true: providers may renew logins unless a test says otherwise. */
+  allowTokenRefresh?: boolean
 }
 
 export interface FakeContext extends ProviderContext {
@@ -127,7 +129,8 @@ export function fakeContext(options: FakeContextOptions = {}): FakeContext {
       run: async (command, args) =>
         commands[[command, ...args].join(' ')] ?? { code: null, stdout: '', stderr: `${command}: not found` }
     },
-    apiKeys: { get: async (providerId) => apiKeys[providerId] },
-    manual: false
+    apiKeys: { get: async (providerId) => apiKeys[providerId], has: async (providerId) => apiKeys[providerId] !== undefined },
+    manual: false,
+    allowTokenRefresh: options.allowTokenRefresh ?? true
   }
 }

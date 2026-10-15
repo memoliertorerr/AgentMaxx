@@ -31,6 +31,8 @@ export interface ContextDependencies {
   log: Logger
   secrets: SecretStore
   apiKeys: ApiKeyStore
+  /** Read per refresh, so switching Read-only Logins applies to the next one. */
+  allowTokenRefresh: () => boolean
 }
 
 export function createContextFactory(deps: ContextDependencies) {
@@ -50,7 +52,8 @@ export function createContextFactory(deps: ContextDependencies) {
       secrets: deps.secrets,
       exec: commandRunner,
       apiKeys: deps.apiKeys,
-      manual
+      manual,
+      allowTokenRefresh: deps.allowTokenRefresh()
     }
   }
 }

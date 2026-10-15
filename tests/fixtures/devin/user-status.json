@@ -1,0 +1,12 @@
+{
+  "userStatus": {
+    "planStatus": {
+      "planInfo": { "planName": "Pro", "hideDailyQuota": false },
+      "dailyQuotaRemainingPercent": 64,
+      "weeklyQuotaRemainingPercent": 82.5,
+      "dailyQuotaResetAtUnix": "1792108800",
+      "weeklyQuotaResetAtUnix": "1792368000",
+      "overageBalanceMicros": "12500000"
+    }
+  }
+}

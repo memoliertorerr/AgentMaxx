@@ -37,6 +37,12 @@ describe('normalizeSettings', () => {
     expect(settings.metricPrefs).toEqual({ claude: { pinned: ['Session', 'Weekly'] } })
   })
 
+  it('keeps Read-only Logins off unless it was switched on with a real boolean', () => {
+    expect(defaultSettings().readOnlyLogins).toBe(false)
+    expect(normalizeSettings({ readOnlyLogins: true }).readOnlyLogins).toBe(true)
+    expect(normalizeSettings({ readOnlyLogins: 'yes' }).readOnlyLogins).toBe(false)
+  })
+
   it('treats a missing enabled list as first run', () => {
     expect(normalizeSettings({}).enabledProviders).toBeNull()
   })

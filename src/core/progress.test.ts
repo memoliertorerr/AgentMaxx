@@ -48,6 +48,7 @@ describe('headline and bar', () => {
     const line: ProgressLine = { type: 'progress', label: 'Extra Usage', used: 12.345, limit: 50, format: { kind: 'dollars' } }
     expect(progressHeadline(line, 'used')).toBe('$12.35 used')
     expect(progressTrailing(line, { now })).toBe('$50 limit')
+    expect(progressTrailing(line, { now, limitNoun: 'purchased' })).toBe('$50 purchased')
     expect(trayValue(line, 'left')).toBe('$38')
   })
 

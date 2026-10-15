@@ -77,3 +77,25 @@ export function ErrorIcon({ size = 14 }: IconProps): React.JSX.Element {
     </svg>
   )
 }
+
+export function StarIcon({ size = 14, filled = false }: IconProps & { filled?: boolean }): React.JSX.Element {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true">
+      <path
+        fill={filled ? 'currentColor' : 'none'}
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+        d="m8 1.8 1.85 3.9 4.25.55-3.1 2.95.8 4.2L8 11.35 4.2 13.4l.8-4.2L1.9 6.25l4.25-.55z"
+      />
+    </svg>
+  )
+}
+
+export function ChevronRightIcon({ size = 12 }: IconProps): React.JSX.Element {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true">
+      <path fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="m6 4 4 4-4 4" />
+    </svg>
+  )
+}

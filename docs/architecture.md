@@ -39,7 +39,8 @@ OpenUsage's design:
 
 1. **Credentials.** Read what the provider's own CLI or app already stored on the machine (or an
    API key the user saved). Tokens are only written back when refreshing an expired OAuth token,
-   and then only the token fields change.
+   and then only the token fields change. With Read-only Logins on, `ctx.allowTokenRefresh` is
+   false and nothing is refreshed or written: an expired login shows the provider's re-login hint.
 2. **Client.** Call the provider's usage API.
 3. **Mapper.** Turn the response into `MetricLine`s: `progress` (a bounded meter), `values`
    (unbounded numbers), `badge` (a status pill), or `text`.
@@ -49,6 +50,15 @@ abort signal, the OS credential store, a command runner, and saved API keys. Tes
 (`tests/helpers/fakes.ts`), so no test can touch real credentials or the network.
 
 `hasLocalCredentials()` is a cheap, local-only check used by first-run detection.
+
+### API keys
+
+OpenRouter and Z.ai need a key the user supplies (`src/core/apiKeys.ts` lists them and their
+environment-variable fallbacks). `ApiKeyVault` (`src/main/apiKeys.ts`) keeps saved keys in
+`api-keys.json`, each encrypted with Electron `safeStorage` (DPAPI on Windows) and stored as
+base64. When encryption isn't available it refuses to save; there's no plaintext fallback.
+Providers read `ctx.apiKeys` (the vault) first, then the environment. Status checks and
+first-run detection never decrypt; the renderer sees a key only through an explicit reveal.
 
 ## Refreshing
 
@@ -67,6 +77,20 @@ Settings (`src/core/settings.ts`) hold the enabled providers, per-metric overrid
 on-demand, pinned), and display preferences. They're stored in `settings.json` and parsed
 tolerantly, so a corrupt file falls back to defaults.
 
+## First run and Settings
+
+When `enabledProviders` is still `null`, the popup shows the welcome screen. It asks main to run
+`detectLocalCredentials` (`src/core/detect.ts`), which calls every provider's local-only
+`hasLocalCredentials()` in parallel with a 10-second timeout each, then preselects what was found
+(`welcomeChoices` in `src/core/settingsView.ts`, which never preselects a provider with
+`autoEnable: false`). The answer is a `completeFirstRun` settings change.
+
+Settings is a set of tabs inside the popup (`src/renderer/components/settings/`): Providers (a
+switch per provider; a provider's metrics with Pin / On demand / Show), API Keys, General, and
+About. Every change goes through the same validated `updateSettings` IPC as the dashboard; launch
+at login has its own calls because the OS login-item list, not `settings.json`, is the source of
+truth (`src/main/loginItem.ts`, packaged builds only). See [settings.md](settings.md).
+
 ## The tray and popup
 
 - **Tray icon** (`src/main/trayIcon.ts`). Drawn in code into PNGs at 16, 24, and 32 px, for 100%,
@@ -83,7 +107,8 @@ tolerantly, so a corrupt file falls back to defaults.
   and an options menu. The popup sizes itself to its content up to 600 px, then scrolls.
 - **IPC** (`src/core/ipc.ts`). The channel names, the `window.usagemaxx` API, and the validation
   of every settings change. The main process rejects malformed payloads and opens only
-  `http(s)` links.
+  `http(s)` links. API keys have their own calls: `getKeyStatus`, `saveKey`, `clearKey`, and
+  `revealKey`, the only one that returns a key.
 
 ## Where data lives
 
@@ -93,6 +118,7 @@ All under Electron's `userData` folder (`%APPDATA%\UsageMaxx` on Windows):
 |---|---|
 | `settings.json` | Settings |
 | `snapshots.json` | Last good snapshot per provider |
+| `api-keys.json` | Saved API keys, DPAPI-encrypted, base64 |
 | `logs/usagemaxx.log` | App log, rotated past 2 MB. Never contains secrets |
 
 Development runs redirect `userData` into the repo's `.cache/` (`scripts/env.sh`). Demo mode
@@ -107,6 +133,7 @@ Development runs redirect `userData` into the repo's `.cache/` (`scripts/env.sh`
 | `USAGEMAXX_SMOKE=1` | Print `usagemaxx:ready` once started; keep the popup open on blur |
 | `USAGEMAXX_SMOKE_SHOW=1` | Open the popup at startup |
 | `USAGEMAXX_THEME=light\|dark` | Force the theme |
+| `USAGEMAXX_SMOKE_VIEW=<view>` | Open a screen at startup: `welcome` (demo mode then skips its pre-enable), `settings`, `providers`, `providers:<id>`, `keys`, `general`, `about` |
 
 `scripts/smoke-launch.mjs` uses these to launch the built or packaged app under Playwright and
 screenshot the popup.

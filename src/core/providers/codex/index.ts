@@ -6,6 +6,7 @@ import { metric } from '../shared'
 import {
   allowsFallback,
   codexAuthError,
+  isExpired,
   loadCodexCredentialAt,
   loadCodexCredentials,
   needsRefresh,
@@ -80,6 +81,7 @@ export class CodexProvider implements ProviderRuntime {
     }
 
     const rotate = async (): Promise<string> => {
+      if (!ctx.allowTokenRefresh) throw codexAuthError.loginExpired()
       const refreshToken = working.tokens.refreshToken
       if (!refreshToken) throw codexAuthError.tokenExpired()
       const refreshed = await refreshCodexToken(ctx, refreshToken)
@@ -95,7 +97,14 @@ export class CodexProvider implements ProviderRuntime {
     }
 
     let accessToken = working.tokens.accessToken ?? ''
-    if (needsRefresh(working, ctx.now()) && working.tokens.refreshToken) accessToken = await rotate()
+    if (needsRefresh(working, ctx.now())) {
+      // Read-only: an expired token stops here; one that's only expiring is tried once as is.
+      if (!ctx.allowTokenRefresh) {
+        if (isExpired(working, ctx.now())) throw codexAuthError.loginExpired()
+      } else if (working.tokens.refreshToken) {
+        accessToken = await rotate()
+      }
+    }
 
     const response = await fetchWithTokenRefresh({
       token: accessToken,

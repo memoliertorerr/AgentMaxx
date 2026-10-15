@@ -1,3 +1,4 @@
+import type { ApiKeyStatus } from './apiKeys'
 import type { ResetMode, TimeFormat } from './format'
 import type { DisplayMode } from './progress'
 import { setMetricFlag, setProviderEnabled, togglePin, type Settings, type Theme } from './settings'
@@ -17,7 +18,14 @@ export const IPC = {
   openExternal: 'usagemaxx:open-external',
   hidePopup: 'usagemaxx:hide-popup',
   resizePopup: 'usagemaxx:resize-popup',
-  quit: 'usagemaxx:quit'
+  quit: 'usagemaxx:quit',
+  getKeyStatus: 'usagemaxx:get-key-status',
+  saveKey: 'usagemaxx:save-key',
+  clearKey: 'usagemaxx:clear-key',
+  revealKey: 'usagemaxx:reveal-key',
+  detectProviders: 'usagemaxx:detect-providers',
+  getLaunchAtLogin: 'usagemaxx:get-launch-at-login',
+  setLaunchAtLogin: 'usagemaxx:set-launch-at-login'
 } as const
 
 export type SettingsChange =
@@ -26,6 +34,7 @@ export type SettingsChange =
   | { kind: 'timeFormat'; value: TimeFormat }
   | { kind: 'theme'; value: Theme }
   | { kind: 'alwaysShowPacing'; value: boolean }
+  | { kind: 'readOnlyLogins'; value: boolean }
   | { kind: 'toggleExpanded'; providerId: string }
   | { kind: 'setProviderEnabled'; providerId: string; enabled: boolean }
   | { kind: 'togglePin'; providerId: string; metricId: string }
@@ -34,8 +43,27 @@ export type SettingsChange =
 
 export type ChangeResult = { ok: true } | { ok: false; reason: string }
 
-/** Screens the main process can ask the popup to show (e.g. tray menu → Settings). */
-export type View = 'dashboard' | 'settings'
+/** Where a key-based provider's API key comes from. The key itself only crosses IPC on reveal. */
+export interface ApiKeyEntry {
+  providerId: string
+  status: ApiKeyStatus
+  /** The environment variable holding a key, when one does. */
+  environmentVariable?: string
+}
+
+/** The OS login-item setting. Unsupported in development runs, which must not register themselves. */
+export interface LaunchAtLogin {
+  supported: boolean
+  enabled: boolean
+}
+
+export type SettingsTab = 'providers' | 'keys' | 'general' | 'about'
+
+/**
+ * Screens the main process can ask the popup to show (tray menu → Settings, smoke screenshots):
+ * the dashboard, Settings, a Settings tab, or a provider's metrics ("providers:claude").
+ */
+export type View = 'dashboard' | 'settings' | SettingsTab | `providers:${string}`
 
 /** What the preload script exposes as `window.usagemaxx`. */
 export interface UsageMaxxApi {
@@ -49,6 +77,15 @@ export interface UsageMaxxApi {
   hidePopup(): void
   resizePopup(height: number): void
   quit(): void
+  getKeyStatus(): Promise<ApiKeyEntry[]>
+  saveKey(providerId: string, key: string): Promise<ChangeResult>
+  clearKey(providerId: string): Promise<ChangeResult>
+  /** The key in use, decrypted — only when the user asks to see it. */
+  revealKey(providerId: string): Promise<string | undefined>
+  /** Which providers have local credentials (first run). Local only, never the network. */
+  detectProviders(): Promise<Record<string, boolean>>
+  getLaunchAtLogin(): Promise<LaunchAtLogin>
+  setLaunchAtLogin(enabled: boolean): Promise<ChangeResult>
 }
 
 function isString(value: unknown): value is string {
@@ -74,6 +111,8 @@ export function parseSettingsChange(raw: unknown): SettingsChange | undefined {
       return oneOf(r.value, ['system', 'light', 'dark'] as const) ? { kind: 'theme', value: r.value } : undefined
     case 'alwaysShowPacing':
       return typeof r.value === 'boolean' ? { kind: 'alwaysShowPacing', value: r.value } : undefined
+    case 'readOnlyLogins':
+      return typeof r.value === 'boolean' ? { kind: 'readOnlyLogins', value: r.value } : undefined
     case 'toggleExpanded':
       return isString(r.providerId) ? { kind: 'toggleExpanded', providerId: r.providerId } : undefined
     case 'setProviderEnabled':
@@ -119,6 +158,8 @@ export function applySettingsChange(settings: Settings, change: SettingsChange, 
       return { ok: true, settings: { ...settings, theme: change.value } }
     case 'alwaysShowPacing':
       return { ok: true, settings: { ...settings, alwaysShowPacing: change.value } }
+    case 'readOnlyLogins':
+      return { ok: true, settings: { ...settings, readOnlyLogins: change.value } }
     case 'toggleExpanded': {
       if (!knownProvider(change.providerId)) return { ok: false, reason: 'Unknown provider' }
       const expanded = new Set(settings.expandedProviders)
