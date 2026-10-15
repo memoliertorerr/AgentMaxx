@@ -63,7 +63,10 @@ are done, the user's Windows check passed on 2026-10-16, and PRs #1–#4 were me
 day, in order, with merge commits, at the user's request. The phase branches are kept. New work
 starts from `main` (see Deferred follow-ups and Later). `CLAUDE.md`, which the steps below keep
 updating, became a local, gitignored file on 2026-10-16 at the user's request; it's no longer in
-the repository.**
+the repository. At the user's request, it was also removed from git history that day: every
+branch was rewritten (`git filter-branch`, dropping `CLAUDE.md` from all commits) and force-pushed
+once, so every commit ID changed. The base is now `86d056b` (the old `85f1b20` only added
+`CLAUDE.md`). IDs in this plan are the new ones; old PR pages may still show the old IDs.**
 
 **Model note:** phases 1 and 2 need the stronger model: UM2 (contract) and UM3 (refresh
 engine) shape every later step, UM4 is the likeliest spike (tray rendering and popup
@@ -198,7 +201,7 @@ physical display is the human's, collected at the UM12 checkpoint.
 
 1. **Branches:** one per phase (`um/p1-foundation`, `um/p2-dashboard`,
    `um/p3-providers-settings`, `um/p4-ship`), each cut from the previous phase's branch;
-   phase 1 from `main`. Tag `pre-windows-port` marks `85f1b20`, the `main` commit before this
+   phase 1 from `main`. Tag `pre-windows-port` marks `86d056b`, the `main` commit before this
    plan. Claude never commits to `main`.
 2. **One step = one commit**, message prefixed `um-step-N:`, made **only when
    `npm run verify` is green.** Never commit red. Plain `git` commands, `git status` review
@@ -251,7 +254,7 @@ Claude stops, reports which condition fired, and waits:
 | Step wrong, not yet committed | `git status`, then `git restore . && git clean -fd` |
 | A committed step is bad | `git revert <sha>` (each step is one green commit, so this is clean) |
 | A whole phase is bad, PR not merged | Close the PR; `git reset --hard <phase-start-sha>` locally, then push with `--force-with-lease` — **the human runs this**, never Claude |
-| Abandon the whole thing | Close the PRs, delete the `um/*` branches; `pre-windows-port` (`85f1b20`) marks where it started |
+| Abandon the whole thing | Close the PRs, delete the `um/*` branches; `pre-windows-port` (`86d056b`) marks where it started |
 
 ---
 
@@ -263,7 +266,7 @@ Ran once while writing this plan:
 cd /Users/memoli/Storage/CS/OpenUsageMaxx
 git remote add upstream https://github.com/robinebers/openusage.git   # read-only reference
 git fetch upstream
-git tag pre-windows-port 85f1b20
+git tag pre-windows-port 86d056b
 git switch -c um/p1-foundation && git push -u origin um/p1-foundation
 ```
 
@@ -312,14 +315,14 @@ Do not redesign these mid-plan; a step that seems to require it is a stop condit
 ### UM0 — Scope docs · Opus · auto
 
 **Verify:** `docs/BUILD_PLAN.md`, updated `CLAUDE.md`, `LICENSE`, and `NOTICE` exist; tag
-`pre-windows-port` points at `85f1b20`; branch `um/p1-foundation` exists on origin.
+`pre-windows-port` points at `86d056b`; branch `um/p1-foundation` exists on origin.
 **Commit:** `um-step-0: add Windows port build plan, standing instructions, license`
 
 ```text
 (Executed while writing the plan.) Write docs/BUILD_PLAN.md, extend CLAUDE.md with the
 project description, stack, structure, commands, and conventions, add an MIT LICENSE with the
 user's copyright, and a NOTICE crediting robinebers/openusage (MIT) and stating the trademark
-position. Tag pre-windows-port at 85f1b20 and create um/p1-foundation from main.
+position. Tag pre-windows-port at 86d056b and create um/p1-foundation from main.
 
 There is no npm project yet, so verify is the file check in the Verify line. Flip UM0 to ✅
 and commit everything as one commit: "um-step-0: add Windows port build plan, standing
@@ -1159,7 +1162,7 @@ before it, each with a um-step-11 prefix and a description). Paste the verify ou
 
 **Implementation notes (2026-10-15):**
 
-- **The package job went green on the first attempt** (run 38780750298, commit `1bc87cd4`, pushed
+- **The package job went green on the first attempt** (run 38780750298, commit `76e5c101`, pushed
   as "CI attempt 1" so CI could run before the tracker flipped). It built
   `UsageMaxx-Setup-0.1.0.exe` (about 111 MB as an artifact), launched
   `dist/win-unpacked/UsageMaxx.exe` under Playwright with demo data, and saved `popup-demo.png`.
