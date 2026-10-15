@@ -79,6 +79,7 @@ describe('values rows', () => {
     expect(valuesText(line)).toBe('$2.1K · 796 credits')
     expect(valuesTooltip(line)).toBe('$2,059.07 · 796 credits')
     expect(valuesTooltip({ ...line, values: [{ number: 4, kind: 'dollars' }] })).toBeUndefined()
+    expect(valuesText({ ...line, values: [{ number: 4.08, kind: 'dollars' }] }, 'spent')).toBe('$4.08 spent')
   })
 })
 
@@ -92,7 +93,7 @@ function provider(metrics: Array<Partial<MetricView> & { id: string }>, links = 
       autoEnable: true
     },
     enabled: true,
-    metrics: metrics.map((metric) => ({ enabled: true, onDemand: false, pinned: false, ...metric })),
+    metrics: metrics.map((metric) => ({ title: metric.id, enabled: true, onDemand: false, pinned: false, ...metric })),
     refreshing: false,
     stale: false,
     hasSnapshot: true,

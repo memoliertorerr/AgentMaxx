@@ -118,6 +118,10 @@ export interface ProviderEntry {
 export interface MetricDescriptor {
   /** Equals the `label` of the line that feeds it. */
   id: string
+  /** The name shown in the UI when it differs from the line label ("Extra Usage" for "Extra usage spent"). */
+  title?: string
+  /** Trailing word for a lone dollar value on an unbounded row: "$12.34 spent", "$5.00 left". */
+  valueWord?: string
   defaultEnabled: boolean
   /** Hidden behind the card's caret by default. */
   defaultOnDemand: boolean

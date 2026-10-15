@@ -48,7 +48,7 @@
 | UM3 | Refresh engine, snapshot cache, settings store | Opus | auto | ✅ done |
 | UM4 | Tray + popup window + positioning + dynamic tray icon + demo provider (first runnable) | Opus | auto | ✅ done |
 | UM5 | Dashboard UI: provider cards, meters, pace colors, resets, errors, footer | Opus | auto | ✅ done |
-| UM6 | Providers: Claude + Codex | Opus | auto | ⬜ todo |
+| UM6 | Providers: Claude + Codex | Opus | auto | ✅ done |
 | UM7 | Providers: Cursor + Copilot (incl. Windows Credential Manager reader) | Opus | auto | ⬜ todo |
 | UM8 | Providers: OpenRouter + Z.ai + encrypted API-key storage | Sonnet | auto | ⬜ todo |
 | UM9 | Providers: Grok + Devin + OpenCode Go + Ollama Cloud | Opus | auto | ⬜ todo |
@@ -56,7 +56,7 @@
 | UM11 | Windows packaging in CI: NSIS installer artifact + smoke screenshot on `windows-latest` | Sonnet | auto | ⬜ todo |
 | UM12 | README, user + developer docs, upstream/PR notes, final `CLAUDE.md` pass | Sonnet | checkpoint | ⬜ todo |
 
-**Overall status: Phase 1 (UM0–UM4) done; its PR is open into main. Phase 2 in progress: UM5 done, next is UM6 (Claude + Codex). The sequence goes
+**Overall status: Phase 1 (UM0–UM4) done; its PR is open into main. Phase 2 in progress: UM5–UM6 done, next is UM7 (Cursor + Copilot). The sequence goes
 foundation → first runnable tray app with demo data at UM4 → dashboard and real providers →
 settings → Windows installer → docs, ending at a human checkpoint on a real Windows PC.**
 
@@ -743,7 +743,7 @@ usage" warning. Codex reads $CODEX_HOME/auth.json or %USERPROFILE%\.codex\auth.j
 refresh writes back only access/refresh/expiry fields, atomically (Ground Rule 8).
 
 Metric defaults (enabled, on-demand, pinned) follow upstream's DefaultLayout. Create
-docs/providers/claude.md and codex.md: what it tracks, credential sources on Windows,
+docs/providers/claude-usage.md (not claude.md — see Landmines) and codex.md: what it tracks, credential sources on Windows,
 endpoints, troubleshooting, and a "Not ported" list.
 
 Do NOT implement spend tiles, reset-credit claiming, Swap/pi accounts, or the reset-grants
@@ -754,6 +754,30 @@ everything as one commit: "um-step-6: Claude and Codex providers". Paste the ver
 `git log -1 --stat`. If it is still red after two honest fix attempts, stop and report —
 never commit red, never weaken a check to get green.
 ```
+
+**Implementation notes (2026-10-15):**
+
+- **Metric descriptors gained `title` and `valueWord`.** Upstream separates the tile title from
+  the line label (Claude "Extra Usage" reads the line "Extra usage spent") and gives an
+  unbounded dollar row a word ("$12.34 spent"). `MetricView.title` is what the UI and tooltip show.
+- **Claude, with an environment token as the only credential, shows a warning instead of
+  nothing.** Upstream shows no warning there because its spend tiles still load, but without
+  spend tiles (Later) the card would be silently empty.
+- **A Claude 429 serves the last good usage with upstream's "Updates blocked by Anthropic"
+  warning.** When there's nothing to show yet, it throws `rateLimited`, so the engine keeps the
+  disk-cached snapshot and shows the message. This replaces upstream's status-badge snapshot.
+- **Token write-back merges into the file's original JSON** (`writeMergedJson`), keeping unknown
+  fields. Upstream's Codex re-encodes its own model, which would drop unknown fields. A login the
+  tool rotated mid-refresh is never overwritten: Claude skips the write, and Codex throws
+  `tokenConflict` as upstream does.
+- **Codex's User-Agent is "UsageMaxx"** (upstream sends "OpenUsage"). Claude keeps upstream's
+  `claude-cli/…` User-Agent, because Anthropic checks the client surface.
+- **The Codex Rate Limit Resets row uses only the count in the usage body.** The per-credit
+  expiry endpoint isn't called (see the provider doc's "Not ported").
+- **The Claude doc is `docs/providers/claude-usage.md`.** Claude Code loaded `claude.md` as a
+  `CLAUDE.md` on macOS's case-insensitive filesystem. Added to Landmines and CLAUDE.md.
+- **Not verified:** live calls against real accounts. Fixtures follow upstream's test payloads.
+  This is the human check at UM12.
 
 ---
 
@@ -1030,6 +1054,11 @@ Populated from real friction, not speculation:
   remotes, `gh` resolved robinebers/openusage — `gh pr create` would have opened a PR there.
   `gh repo set-default memoliertorerr/OpenUsageMaxx` is set; always pass
   `--repo memoliertorerr/OpenUsageMaxx` too.
+- **A provider doc named `claude.md` is read as a `CLAUDE.md`.** On a case-insensitive filesystem
+  (macOS default), Claude Code loaded `docs/providers/claude.md` as standing instructions for that
+  folder. The Claude provider's doc is `docs/providers/claude-usage.md` instead. Never create a
+  file named `claude.md` or `agents.md` in any letter case anywhere in the repo, except the root
+  `CLAUDE.md`.
 - **Windows 11 hides new tray icons in the overflow (^) menu** and has no API to pin them. The
   README must tell users how to show it on the taskbar.
 

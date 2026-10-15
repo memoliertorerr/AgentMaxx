@@ -106,8 +106,10 @@ function paceTickFor(line: ProgressLine, state: ReturnType<typeof meterState>, n
   return paceTick(line, shown, now, settings.displayMode)
 }
 
-/** "$31.84 · 796 credits". */
-export function valuesText(line: ValuesLine): string {
+/** "$31.84 · 796 credits"; a lone dollar value takes the metric's word ("$4.08 spent"). */
+export function valuesText(line: ValuesLine, valueWord?: string): string {
+  const only = line.values.length === 1 ? line.values[0] : undefined
+  if (only && only.kind === 'dollars' && valueWord) return `${formatValue(only, 'row')} ${valueWord}`
   return line.values.map((value) => formatValue(value, 'row')).join(' · ')
 }
 

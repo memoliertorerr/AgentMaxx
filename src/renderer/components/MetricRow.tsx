@@ -18,7 +18,7 @@ export function MetricRow({ metric, settings, now, onToggleDisplay, onToggleRese
     return (
       <div className="row">
         <div className="row-line">
-          <span className="row-label">{metric.id}</span>
+          <span className="row-label">{metric.title}</span>
           <span className="row-nodata">No data</span>
         </div>
       </div>
@@ -32,7 +32,7 @@ export function MetricRow({ metric, settings, now, onToggleDisplay, onToggleRese
       return (
         <div className="row">
           <div className="row-line">
-            <span className="row-label">{metric.id}</span>
+            <span className="row-label">{metric.title}</span>
             {model.note ? (
               <span className={`note ${model.note.kind}`} title={model.barTooltip}>
                 {model.note.kind === 'runOut' ? <FlameIcon /> : null}
@@ -67,9 +67,9 @@ export function MetricRow({ metric, settings, now, onToggleDisplay, onToggleRese
       return (
         <div className="row">
           <div className="row-line">
-            <span className="row-label">{metric.id}</span>
+            <span className="row-label">{metric.title}</span>
             <span className="row-value" title={valuesTooltip(line)}>
-              {valuesText(line)}
+              {valuesText(line, metric.valueWord)}
             </span>
           </div>
         </div>
@@ -78,7 +78,7 @@ export function MetricRow({ metric, settings, now, onToggleDisplay, onToggleRese
       return (
         <div className="row">
           <div className="row-line">
-            <span className="row-label">{metric.id}</span>
+            <span className="row-label">{metric.title}</span>
             <span className="badge" title={line.subtitle} style={line.colorHex ? { color: line.colorHex } : undefined}>
               {line.text}
             </span>
@@ -89,7 +89,7 @@ export function MetricRow({ metric, settings, now, onToggleDisplay, onToggleRese
       return (
         <div className="row">
           <div className="row-line">
-            <span className="row-label">{metric.id}</span>
+            <span className="row-label">{metric.title}</span>
             <span className="row-value">{line.value}</span>
           </div>
         </div>

@@ -1,0 +1,15 @@
+{
+  "five_hour": { "utilization": 10, "resets_at": "2026-10-15T14:00:00.000Z" },
+  "seven_day": { "utilization": 20, "resets_at": "2026-10-19T00:00:00.000Z" },
+  "seven_day_sonnet": { "utilization": 5, "resets_at": "2026-10-19T00:00:00.000Z" },
+  "limits": [
+    {
+      "kind": "weekly_scoped",
+      "group": "weekly",
+      "percent": 7,
+      "resets_at": "2026-10-19T00:00:00.000Z",
+      "scope": { "model": { "display_name": "Fable", "id": null }, "surface": null }
+    }
+  ],
+  "extra_usage": { "is_enabled": true, "used_credits": 500, "monthly_limit": 1000 }
+}
