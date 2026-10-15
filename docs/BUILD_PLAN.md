@@ -55,9 +55,9 @@
 | UM10 | Settings view: providers, pins, API keys, launch at login, first-run welcome | Sonnet | auto | ✅ done |
 | UM10.1 | Read-only logins: never refresh tokens; show the re-login hint | Opus | auto | ✅ done |
 | UM11 | Windows packaging in CI: NSIS installer artifact + smoke screenshot on `windows-latest` | Sonnet | auto | ✅ done |
-| UM12 | README, user + developer docs, upstream/PR notes, final `CLAUDE.md` pass | Sonnet | checkpoint | ⬜ todo |
+| UM12 | README, user + developer docs, upstream/PR notes, final `CLAUDE.md` pass | Sonnet | checkpoint | ✅ done — awaiting human Windows check |
 
-**Overall status: Phases 1–2 (UM0–UM7) done; PR #1 (phase 1 → main) and the phase-2 PR (→ um/p1-foundation) are open. Phase 3 (UM8–UM10.1, UM10.1 added mid-plan) is done on `um/p3-providers-settings`, PR #3 into `um/p2-dashboard`. Phase 4 is in progress on `um/p4-ship` (which merged phase 3 for UM10.1): UM11 done, next is UM12 (README and docs, a checkpoint). The sequence goes
+**Overall status: Phases 1–2 (UM0–UM7) done; PR #1 (phase 1 → main) and the phase-2 PR (→ um/p1-foundation) are open. Phase 3 (UM8–UM10.1, UM10.1 added mid-plan) is done on `um/p3-providers-settings`, PR #3 into `um/p2-dashboard`. Phase 4 (UM11–UM12) is done on `um/p4-ship` (which merged phase 3 for UM10.1), PR into `um/p3-providers-settings`. **Stopped at the UM12 checkpoint:** the human Windows checks in the phase-4 PR come next. The sequence goes
 foundation → first runnable tray app with demo data at UM4 → dashboard and real providers →
 settings → Windows installer → docs, ending at a human checkpoint on a real Windows PC.**
 
@@ -1236,6 +1236,27 @@ This is a checkpoint and ends phase 4: push the branch, open the PR into
 um/p3-providers-settings using the PR description template with the Windows checklist from
 "Who verifies what" under Needs human check, wait for CI, then stop.
 ```
+
+**Implementation notes (2026-10-15):**
+
+- **The README follows the prompt's sections**, with the screenshot from UM11's Windows CI run
+  (`docs/assets/screenshot.png`, demo data). Install points at the CI artifact, because there are
+  no releases yet; it also covers Windows 10's tray setting and what uninstalling leaves in
+  `%APPDATA%\UsageMaxx`.
+- **"Risks and terms" (added mid-plan) is as specified**, with one correction for accuracy: "backs
+  off on rate limits" now says how. Claude waits out Anthropic's `Retry-After`; the other providers
+  simply wait for the next 5-minute refresh. Also, "one request per provider every 5 minutes" became
+  "one refresh … (a few small requests each)", because Cursor and Copilot make several calls per
+  refresh. GitHub's Acceptable Use Policies are linked as the terms that govern GitHub's services,
+  without claiming more than that.
+- **`docs/upstream.md` was checked against upstream on 2026-10-15**: the owner's reply on #374, a
+  collaborator's on #1064, #1043 declined, the six Windows PRs closed unmerged, and CONTRIBUTING's
+  issue-first and no-AI-commit-message rules. Replies are paraphrased, not quoted. The draft issue
+  says plainly that it's unposted and that #1043, a near-duplicate, was declined. Nothing was
+  posted upstream.
+- **`docs/README.md` indexes every doc**, and CLAUDE.md now lists the README, the index, the
+  upstream notes, and when the README's provider table, Privacy, and Risks and terms must change.
+- **Human check (the checkpoint):** the Windows checklist in the phase-4 PR.
 
 ---
 
