@@ -6,6 +6,7 @@ import type { Theme } from '../core/settings'
 import { createContextFactory } from './context'
 import { registerIpc } from './ipc'
 import { createFileLogger } from './log'
+import { createWindowsSecretStore } from './windowsCredentials'
 import { Popup } from './popup'
 import { TrayController } from './tray'
 import { AppStore } from './store'
@@ -54,8 +55,8 @@ async function main(): Promise<void> {
     demo,
     makeContext: createContextFactory({
       log,
-      // Filled in by UM7 (Windows Credential Manager) and UM8 (saved API keys).
-      secrets: { list: async () => [] },
+      secrets: createWindowsSecretStore(log),
+      // Filled in by UM8 (saved API keys).
       apiKeys: { get: async () => undefined }
     })
   })

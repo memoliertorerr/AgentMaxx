@@ -3,6 +3,7 @@ import { homedir } from 'node:os'
 import { nodeFileSystem } from '../core/fs'
 import { createFetchHttpClient } from '../core/http'
 import { resolvePaths } from '../core/paths'
+import { createSqliteReader } from '../core/sqlite'
 import type { ApiKeyStore, CommandRunner, Logger, ProviderContext, SecretStore } from '../core/runtime'
 
 // The real provider context: Node's filesystem and fetch, the process environment, and the OS
@@ -34,6 +35,7 @@ export interface ContextDependencies {
 
 export function createContextFactory(deps: ContextDependencies) {
   const http = createFetchHttpClient()
+  const sqlite = createSqliteReader((path) => nodeFileSystem.exists(path))
   return ({ signal, manual }: { signal: AbortSignal; manual: boolean }): ProviderContext => {
     const env = { ...process.env }
     return {
@@ -41,6 +43,7 @@ export function createContextFactory(deps: ContextDependencies) {
       paths: resolvePaths({ env, homedir: homedir(), platform: process.platform }),
       http,
       fs: nodeFileSystem,
+      sqlite,
       log: deps.log,
       now: () => new Date(),
       signal,

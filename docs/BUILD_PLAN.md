@@ -49,14 +49,14 @@
 | UM4 | Tray + popup window + positioning + dynamic tray icon + demo provider (first runnable) | Opus | auto | ✅ done |
 | UM5 | Dashboard UI: provider cards, meters, pace colors, resets, errors, footer | Opus | auto | ✅ done |
 | UM6 | Providers: Claude + Codex | Opus | auto | ✅ done |
-| UM7 | Providers: Cursor + Copilot (incl. Windows Credential Manager reader) | Opus | auto | ⬜ todo |
+| UM7 | Providers: Cursor + Copilot (incl. Windows Credential Manager reader) | Opus | auto | ✅ done |
 | UM8 | Providers: OpenRouter + Z.ai + encrypted API-key storage | Sonnet | auto | ⬜ todo |
 | UM9 | Providers: Grok + Devin + OpenCode Go + Ollama Cloud | Opus | auto | ⬜ todo |
 | UM10 | Settings view: providers, pins, API keys, launch at login, first-run welcome | Sonnet | auto | ⬜ todo |
 | UM11 | Windows packaging in CI: NSIS installer artifact + smoke screenshot on `windows-latest` | Sonnet | auto | ⬜ todo |
 | UM12 | README, user + developer docs, upstream/PR notes, final `CLAUDE.md` pass | Sonnet | checkpoint | ⬜ todo |
 
-**Overall status: Phase 1 (UM0–UM4) done; its PR is open into main. Phase 2 in progress: UM5–UM6 done, next is UM7 (Cursor + Copilot). The sequence goes
+**Overall status: Phases 1–2 (UM0–UM7) done; PR #1 (phase 1 → main) and the phase-2 PR (→ um/p1-foundation) are open. Next is phase 3 from UM8 (OpenRouter + Z.ai). The sequence goes
 foundation → first runnable tray app with demo data at UM4 → dashboard and real providers →
 settings → Windows installer → docs, ending at a human checkpoint on a real Windows PC.**
 
@@ -826,6 +826,29 @@ never commit red, never weaken a check to get green.
 This ends phase 2: push the branch, open the PR into um/p1-foundation using the PR
 description template, wait for CI, then stop (unless told to run on).
 ```
+
+**Implementation notes (2026-10-15):**
+
+- **SQLite uses `node:sqlite`, read-only.** It's available in Electron 44's Node 24.21 (verified
+  in UM1) and in plain Node 24 for tests. It sits behind `ctx.sqlite` (`SqliteReader`), with
+  `FakeSqlite` for tests and a real-file test of the reader itself. `sql.js` was not added.
+- **Cursor never writes to `state.vscdb`.** Upstream writes the refreshed access token back. Here
+  it's kept in memory, keyed by the refresh token, and reused until it nears expiry, because
+  writing into a running app's database risks lock contention and corruption.
+- **Copilot's token order on Windows:** `%LOCALAPPDATA%\github-copilot\apps.json`/`hosts.json`,
+  then `%APPDATA%\GitHub CLI\hosts.yml` (or `GH_CONFIG_DIR`), then `gh auth token`, then
+  Credential Manager `gh:github.com:<user>` (preferring the hosts.yml user, unwrapping
+  go-keyring's base64).
+- **The Credential Manager reader is PowerShell with an inline C# `CredEnumerateW`**, sent as
+  `-EncodedCommand`. The prefix goes through an environment variable, not the command line. The
+  output, which contains secrets, is parsed in `src/core/credentialManager.ts` and never logged.
+  **Not verified:** it only runs on Windows. Its parsing is unit-tested, and the PowerShell
+  itself is a UM12 human check.
+- **The Copilot billing org is remembered in memory only** (upstream uses UserDefaults), so it's
+  re-discovered once per launch.
+- **Cursor and Copilot User-Agents:** Copilot keeps its `GitHubCopilotChat/…` editor headers
+  (protocol). The GitHub billing calls send "UsageMaxx".
+- **Not verified:** live calls (fixtures follow upstream's test payloads).
 
 ---
 

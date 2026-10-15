@@ -1,6 +1,7 @@
 import type { FileSystem } from './fs'
 import type { HttpClient } from './http'
 import type { Env, ResolvedPaths } from './paths'
+import type { SqliteReader } from './sqlite'
 import type { ProviderEntry, ProviderInfo, ProviderSnapshot } from './types'
 
 // The provider contract (upstream `ProviderRuntime`). Every side effect a provider needs comes in
@@ -46,6 +47,8 @@ export interface ProviderContext {
   paths: ResolvedPaths
   http: HttpClient
   fs: FileSystem
+  /** Read-only key/value lookups in other apps' SQLite files. */
+  sqlite: SqliteReader
   log: Logger
   now: () => Date
   signal: AbortSignal

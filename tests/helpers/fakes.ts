@@ -2,6 +2,7 @@ import { FileAccessError, type FileSystem } from '../../src/core/fs'
 import type { HttpClient, HttpRequest, HttpResponse } from '../../src/core/http'
 import { resolvePaths, type Env } from '../../src/core/paths'
 import type { CommandResult, Logger, ProviderContext, StoredSecret } from '../../src/core/runtime'
+import type { SqliteReader } from '../../src/core/sqlite'
 
 // Test doubles for the provider context. Nothing here touches the real filesystem, network,
 // credential store, or processes.
@@ -29,6 +30,24 @@ export class MemoryFileSystem implements FileSystem {
 
   async exists(filePath: string): Promise<boolean> {
     return this.files.has(filePath)
+  }
+}
+
+/** SQLite fake: databases[path][table] = key → value. */
+export class FakeSqlite implements SqliteReader {
+  readonly reads: string[] = []
+  constructor(readonly databases: Record<string, Record<string, Record<string, string>>> = {}) {}
+
+  async readKeyValues(dbPath: string, table: string, keys: readonly string[]): Promise<Record<string, string> | undefined> {
+    this.reads.push(dbPath)
+    const rows = this.databases[dbPath]?.[table]
+    if (!this.databases[dbPath]) return undefined
+    const result: Record<string, string> = {}
+    for (const key of keys) {
+      const value = rows?.[key]
+      if (value !== undefined) result[key] = value
+    }
+    return result
   }
 }
 
@@ -71,11 +90,13 @@ export interface FakeContextOptions {
   apiKeys?: Record<string, string>
   http?: FakeHttp
   fs?: MemoryFileSystem
+  sqlite?: FakeSqlite
 }
 
 export interface FakeContext extends ProviderContext {
   http: FakeHttp
   fs: MemoryFileSystem
+  sqlite: FakeSqlite
 }
 
 /** A Windows-flavored provider context by default: C:\Users\ada with standard AppData folders. */
@@ -97,6 +118,7 @@ export function fakeContext(options: FakeContextOptions = {}): FakeContext {
     paths: resolvePaths({ env, homedir: home, platform }),
     http: options.http ?? new FakeHttp(),
     fs: options.fs ?? new MemoryFileSystem(options.files),
+    sqlite: options.sqlite ?? new FakeSqlite(),
     log: silentLogger,
     now: () => now,
     signal: new AbortController().signal,
