@@ -34,6 +34,7 @@ export type SettingsChange =
   | { kind: 'timeFormat'; value: TimeFormat }
   | { kind: 'theme'; value: Theme }
   | { kind: 'alwaysShowPacing'; value: boolean }
+  | { kind: 'readOnlyLogins'; value: boolean }
   | { kind: 'toggleExpanded'; providerId: string }
   | { kind: 'setProviderEnabled'; providerId: string; enabled: boolean }
   | { kind: 'togglePin'; providerId: string; metricId: string }
@@ -110,6 +111,8 @@ export function parseSettingsChange(raw: unknown): SettingsChange | undefined {
       return oneOf(r.value, ['system', 'light', 'dark'] as const) ? { kind: 'theme', value: r.value } : undefined
     case 'alwaysShowPacing':
       return typeof r.value === 'boolean' ? { kind: 'alwaysShowPacing', value: r.value } : undefined
+    case 'readOnlyLogins':
+      return typeof r.value === 'boolean' ? { kind: 'readOnlyLogins', value: r.value } : undefined
     case 'toggleExpanded':
       return isString(r.providerId) ? { kind: 'toggleExpanded', providerId: r.providerId } : undefined
     case 'setProviderEnabled':
@@ -155,6 +158,8 @@ export function applySettingsChange(settings: Settings, change: SettingsChange, 
       return { ok: true, settings: { ...settings, theme: change.value } }
     case 'alwaysShowPacing':
       return { ok: true, settings: { ...settings, alwaysShowPacing: change.value } }
+    case 'readOnlyLogins':
+      return { ok: true, settings: { ...settings, readOnlyLogins: change.value } }
     case 'toggleExpanded': {
       if (!knownProvider(change.providerId)) return { ok: false, reason: 'Unknown provider' }
       const expanded = new Set(settings.expandedProviders)

@@ -8,6 +8,7 @@ import {
   allowsFallback,
   claudeAuthText,
   claudeOAuthConfig,
+  isExpired,
   liveUsageAvailability,
   loadClaudeCredentials,
   needsRefresh,
@@ -24,6 +25,8 @@ const RATE_LIMIT_COOLDOWN_S = 5 * 60
 
 const tokenExpired = () => new ProviderError('authExpired', claudeAuthText.tokenExpired)
 const sessionExpired = () => new ProviderError('authExpired', claudeAuthText.sessionExpired)
+/** Read-only Logins: the login isn't renewed, so the user signs in again with Claude Code. */
+const loginExpired = () => new ProviderError('authExpired', claudeAuthText.loginExpired)
 
 export class ClaudeProvider implements ProviderRuntime {
   readonly info: ProviderInfo = {
@@ -99,14 +102,20 @@ export class ClaudeProvider implements ProviderRuntime {
       return this.rateLimited(key, Math.ceil((this.cooldown.until - now.getTime()) / 1000))
     }
 
-    if (needsRefresh(working.oauth, now) && working.oauth.refreshToken) {
-      await this.rotate(ctx, config, working)
+    if (needsRefresh(working.oauth, now)) {
+      // Read-only: an expired token stops here; one that's only expiring is tried once as is.
+      if (!ctx.allowTokenRefresh) {
+        if (isExpired(working.oauth, now)) throw loginExpired()
+      } else if (working.oauth.refreshToken) {
+        await this.rotate(ctx, config, working)
+      }
     }
 
     const response = await fetchWithTokenRefresh({
       token: working.oauth.accessToken ?? '',
       attempt: (token) => fetchClaudeUsage(ctx, config, token),
       refreshAccessToken: async () => {
+        if (!ctx.allowTokenRefresh) throw loginExpired()
         if (!working.oauth.refreshToken) throw tokenExpired()
         await this.rotate(ctx, config, working)
         return working.oauth.accessToken ?? ''
@@ -155,6 +164,7 @@ export class ClaudeProvider implements ProviderRuntime {
 
   /** Exchanges the refresh token, writes the rotation back, and moves `working` onto it. */
   private async rotate(ctx: ProviderContext, config: ClaudeOAuthConfig, working: ClaudeCredential): Promise<void> {
+    if (!ctx.allowTokenRefresh) throw loginExpired()
     const refreshToken = working.oauth.refreshToken
     if (!refreshToken) throw tokenExpired()
     ctx.log.info('auth:claude', 'token refresh attempt')

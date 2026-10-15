@@ -58,6 +58,7 @@ async function main(): Promise<void> {
   log.info('app', `UsageMaxx ${app.getVersion()} starting on ${process.platform} (demo: ${demo})`)
 
   const providers = createProviders({ demo })
+  let readOnlyLogins: () => boolean | undefined = () => undefined
   const keys = new ApiKeyVault({
     fs: nodeFileSystem,
     filePath: join(app.getPath('userData'), 'api-keys.json'),
@@ -74,9 +75,12 @@ async function main(): Promise<void> {
     makeContext: createContextFactory({
       log,
       secrets: createWindowsSecretStore(log),
-      apiKeys: keys
+      apiKeys: keys,
+      // Read-only Logins off (and never in demo mode). Until the store exists, nothing renews.
+      allowTokenRefresh: () => !demo && readOnlyLogins() === false
     })
   })
+  readOnlyLogins = () => store.getSettings().readOnlyLogins
   // Demo mode skips the welcome screen, unless a smoke run asked to screenshot it.
   if (demo && store.getSettings().enabledProviders === null && smokeView !== 'welcome') {
     const ids = providers.map((provider) => provider.info.id)

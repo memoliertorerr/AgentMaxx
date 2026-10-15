@@ -39,7 +39,8 @@ OpenUsage's design:
 
 1. **Credentials.** Read what the provider's own CLI or app already stored on the machine (or an
    API key the user saved). Tokens are only written back when refreshing an expired OAuth token,
-   and then only the token fields change.
+   and then only the token fields change. With Read-only Logins on, `ctx.allowTokenRefresh` is
+   false and nothing is refreshed or written: an expired login shows the provider's re-login hint.
 2. **Client.** Call the provider's usage API.
 3. **Mapper.** Turn the response into `MetricLine`s: `progress` (a bounded meter), `values`
    (unbounded numbers), `badge` (a status pill), or `text`.

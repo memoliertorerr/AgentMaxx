@@ -32,6 +32,10 @@ Tokens refresh automatically: shortly before the access token's expiry, and once
 every other field is kept. If the Codex CLI rotated the login on disk in the meantime, UsageMaxx
 leaves the CLI's newer login in place.
 
+With **Read-only Logins** on (Settings → General), UsageMaxx never renews the login and never
+writes the file. A token that's about to expire is still used as is; once it has expired, or the
+API rejects it, the card shows "Login expired. Run `codex` to sign in again, then refresh." and the Codex CLI renews it the next time you run it.
+
 ## Troubleshooting
 
 - **"Not logged in"**: run `codex` and sign in, then refresh.
@@ -39,12 +43,15 @@ leaves the CLI's newer login in place.
   limits need a ChatGPT sign-in, so run `codex` and sign in with your ChatGPT account.
 - **"Session expired" / "Token revoked" / "Token conflict"**: run `codex` again to renew the
   login, then refresh.
+- **"Login expired. Run `codex`…"**: Read-only Logins is on and the login expired. Run `codex`,
+  then refresh, or turn Read-only Logins off.
 
 ## Under the hood
 
 - `GET https://chatgpt.com/backend-api/wham/usage` with the OAuth token and
   `ChatGPT-Account-Id` when the login names an account.
-- `POST https://auth.openai.com/oauth/token` (form-encoded `refresh_token` grant) to refresh.
+- `POST https://auth.openai.com/oauth/token` (form-encoded `refresh_token` grant) to refresh;
+  never called with Read-only Logins on.
   `refresh_token_expired`, `refresh_token_reused`, and `refresh_token_invalidated` map to
   expired, conflicting, and revoked logins.
 - Response headers `x-codex-primary-used-percent`, `x-codex-secondary-used-percent`, and

@@ -53,11 +53,11 @@
 | UM8 | Providers: OpenRouter + Z.ai + encrypted API-key storage | Sonnet | auto | ✅ done |
 | UM9 | Providers: Grok + Devin + OpenCode Go + Ollama Cloud | Opus | auto | ✅ done |
 | UM10 | Settings view: providers, pins, API keys, launch at login, first-run welcome | Sonnet | auto | ✅ done |
-| UM10.1 | Read-only logins: never refresh tokens; show the re-login hint | Opus | auto | ⬜ todo |
+| UM10.1 | Read-only logins: never refresh tokens; show the re-login hint | Opus | auto | ✅ done |
 | UM11 | Windows packaging in CI: NSIS installer artifact + smoke screenshot on `windows-latest` | Sonnet | auto | ⬜ todo |
 | UM12 | README, user + developer docs, upstream/PR notes, final `CLAUDE.md` pass | Sonnet | checkpoint | ⬜ todo |
 
-**Overall status: Phases 1–2 (UM0–UM7) done; PR #1 (phase 1 → main) and the phase-2 PR (→ um/p1-foundation) are open. Phase 3 (UM8–UM10.1) is on `um/p3-providers-settings`, PR into `um/p2-dashboard`: UM8–UM10 done, UM10.1 (read-only logins, added mid-plan) next. Phase 4 (`um/p4-ship`) has UM11 done and picks up UM10.1 by merging phase 3 before UM12. The sequence goes
+**Overall status: Phases 1–2 (UM0–UM7) done; PR #1 (phase 1 → main) and the phase-2 PR (→ um/p1-foundation) are open. Phase 3 (UM8–UM10.1) is on `um/p3-providers-settings`, PR into `um/p2-dashboard`: UM8–UM10.1 done (UM10.1 added mid-plan). Phase 4 (`um/p4-ship`) has UM11 done and picks up UM10.1 by merging phase 3 before UM12. The sequence goes
 foundation → first runnable tray app with demo data at UM4 → dashboard and real providers →
 settings → Windows installer → docs, ending at a human checkpoint on a real Windows PC.**
 
@@ -1094,6 +1094,27 @@ docs/BUILD_PLAN.md and commit everything as one commit: "um-step-10.1: read-only
 setting". Paste the verify output and `git log -1 --stat`. If it is still red after two honest
 fix attempts, stop and report — never commit red, never weaken a check to get green.
 ```
+
+**Implementation notes (2026-10-15):**
+
+- **Done as specified.** Each provider guards both places a login could be renewed: before
+  refreshing an expiring token, and in the 401/403 retry callback. The refresh functions
+  themselves (Claude `rotate`, Codex `rotate`, Cursor `refreshAccessToken`) check the flag again,
+  so no future caller can renew a login by accident. Grok's refresh helper returns nothing when
+  renewal is off, which reuses its existing loop: an expiring token is probed as is, and an expired
+  one is skipped and reported with the hint.
+- **"Expired" means a known expiry has passed.** Claude uses `expiresAt`; Codex, Cursor, and Grok
+  use the JWT `exp`. A token whose expiry can't be read is tried once rather than refused.
+- **The hints follow each provider's existing wording**: "Run `codex` …" (as Codex's other
+  messages say), and Cursor's "Open Cursor to renew it, then refresh."
+- **The tests are in one file, `src/core/providers/readOnlyLogins.test.ts`**: three cases (expired,
+  expiring, 401) for each of the four providers. Each asserts no request to the refresh URL, no
+  file write, and the hint. With the flag flipped to `true`, all 12 fail, so they catch a regression.
+  The refresh-on tests are unchanged and still pass.
+- **`allowTokenRefresh` reads the setting on every refresh**, so switching it applies to the next
+  refresh. Until the store exists at startup, it reads as "no renewal". Demo mode always has it off.
+- **Verified:** `npm run verify` (34 files, 311 tests) and a demo screenshot of Settings → General
+  with the switch. **Not verified:** a real expired login on Windows (UM12 human check).
 
 ---
 

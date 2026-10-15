@@ -60,6 +60,11 @@ export interface ProviderContext {
   apiKeys: ApiKeyStore
   /** True when the user asked for this refresh (Refresh Now) rather than the timer. */
   manual: boolean
+  /**
+   * False when Read-only Logins is on (and in demo mode): providers must never call a token
+   * refresh endpoint or write a credential file, and show their re-login hint instead.
+   */
+  allowTokenRefresh: boolean
 }
 
 export interface ProviderRuntime extends ProviderEntry {

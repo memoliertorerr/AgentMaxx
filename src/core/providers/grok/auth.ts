@@ -12,7 +12,9 @@ const REFRESH_BUFFER_MS = 5 * 60_000
 export const grokAuthError = {
   notLoggedIn: () => new ProviderError('notLoggedIn', 'Grok not logged in. Run `grok login`.'),
   invalidAuth: () => new ProviderError('authInvalid', 'Grok auth invalid. Run `grok login` again.'),
-  expired: () => new ProviderError('authExpired', 'Grok auth expired. Run `grok login` again.')
+  expired: () => new ProviderError('authExpired', 'Grok auth expired. Run `grok login` again.'),
+  /** Read-only Logins: the login isn't renewed. */
+  loginExpired: () => new ProviderError('authExpired', 'Login expired. Run `grok login` to sign in again, then refresh.')
 }
 
 export interface GrokEntry {
