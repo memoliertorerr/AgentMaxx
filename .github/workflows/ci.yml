@@ -60,3 +60,30 @@ jobs:
           path: test-results/*.png
           # A failed smoke run has already failed the job; don't add a second failure.
           if-no-files-found: warn
+
+  package-arm64:
+    name: package (windows-11-arm)
+    needs: verify
+    runs-on: windows-11-arm
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run verify
+      - name: Build the arm64 app (unpacked)
+        run: npx electron-vite build && npx electron-builder --win dir --arm64 --publish never
+      - name: Smoke-launch the arm64 app natively and screenshot the popup (demo data)
+        run: node scripts/smoke-launch.mjs --exe "dist/win-arm64-unpacked/UsageMaxx.exe" --screenshot --name popup-demo-arm64
+        env:
+          USAGEMAXX_DEMO: '1'
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: smoke-screenshots-arm64
+          path: test-results/*.png
+          if-no-files-found: warn

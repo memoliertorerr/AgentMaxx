@@ -12,8 +12,11 @@ asar: true
 win:
   target:
     - target: nsis
+      # One installer for both: electron-builder's multi-arch NSIS installs the build that matches
+      # the PC (Intel/AMD, or Windows on ARM such as Snapdragon laptops and Parallels on Apple Silicon).
       arch:
         - x64
+        - arm64
   artifactName: UsageMaxx-Setup-${version}.${ext}
 nsis:
   oneClick: false

@@ -55,6 +55,7 @@
 | UM10 | Settings view: providers, pins, API keys, launch at login, first-run welcome | Sonnet | auto | ✅ done |
 | UM10.1 | Read-only logins: never refresh tokens; show the re-login hint | Opus | auto | ✅ done |
 | UM11 | Windows packaging in CI: NSIS installer artifact + smoke screenshot on `windows-latest` | Sonnet | auto | ✅ done |
+| UM11.1 | Windows on ARM (arm64): one x64 + arm64 installer, native ARM smoke screenshot in CI | Opus | auto | ⬜ todo |
 | UM12 | README, user + developer docs, upstream/PR notes, final `CLAUDE.md` pass | Sonnet | checkpoint | ✅ done — awaiting human Windows check |
 
 **Overall status: Phases 1–2 (UM0–UM7) done; PR #1 (phase 1 → main) and the phase-2 PR (→ um/p1-foundation) are open. Phase 3 (UM8–UM10.1, UM10.1 added mid-plan) is done on `um/p3-providers-settings`, PR #3 into `um/p2-dashboard`. Phase 4 (UM11–UM12) is done on `um/p4-ship` (which merged phase 3 for UM10.1), PR into `um/p3-providers-settings`. **Stopped at the UM12 checkpoint:** the human Windows checks in the phase-4 PR come next. The sequence goes
@@ -76,7 +77,8 @@ mechanical (CI packaging, docs) and fits Sonnet.
 3. **UM8 → UM10.1** · Opus · branch `um/p3-providers-settings` → PR into `um/p2-dashboard` —
    review API-key handling (DPAPI, never plaintext), the settings screenshots, and the
    read-only logins switch (UM10.1, added mid-plan).
-4. **UM11 → UM12** · Sonnet · branch `um/p4-ship` → PR into `um/p3-providers-settings` —
+4. **UM11 → UM12** (with UM11.1, added mid-plan) · Sonnet · branch `um/p4-ship` → PR into
+   `um/p3-providers-settings` —
    review the Windows CI screenshot, the installer artifact, and the README. Ends in the human
    Windows checks.
 
@@ -181,6 +183,7 @@ Steps: UM<a> → UM<b> (plan: docs/BUILD_PLAN.md) · Stacked on: <base branch / 
 | Tray icon position, overflow, DPI | **you** — UM12 checkpoint | On your Windows PC the icon sits in the notification area (bottom right); pinned bars are legible at 100% and 150% scaling; the popup opens above the icon and hides on click-away |
 | Live provider data | **you** — UM12 checkpoint | With your own logins on Windows, each provider you use shows the same numbers as its own dashboard |
 | Installer UX | **you** — UM12 checkpoint | SmartScreen warning is expected (unsigned); install, launch at login, and uninstall all work |
+| Windows on ARM | **you** — UM12 checkpoint | On Windows 11 on ARM (e.g. Parallels on an Apple Silicon Mac) the same installer installs and UsageMaxx runs natively: Task Manager → Details, add the Architecture column, and UsageMaxx reads ARM64 |
 
 Claude self-verifies everything that runs headlessly: types, tests, the macOS dev build, and
 the Windows CI build and screenshot. Anything needing a Windows desktop, real logins, or a
@@ -1171,6 +1174,48 @@ before it, each with a um-step-11 prefix and a description). Paste the verify ou
   failure isn't reported twice.
 - **Not verified:** installing, launching at login, and uninstalling from the NSIS installer, the
   tray icon in the real notification area, and DPI scaling. Those are UM12 human checks.
+
+---
+
+### UM11.1 — Windows on ARM (arm64) build · Opus · auto
+
+> **Added mid-plan 2026-10-15** — requested by the user, who tests on Parallels on an Apple
+> Silicon Mac (Windows 11 on ARM), where an x64-only build would run only under emulation.
+
+**Verify:** `npm run verify` green locally; on the pushed branch, `package (windows-latest)` is
+green and its `usagemaxx-installer` artifact is one NSIS installer holding both x64 and arm64
+builds (`UsageMaxx-Setup-<version>.exe`), with the x64 smoke screenshot as before; and
+`package (windows-11-arm)` runs verify natively on ARM, builds the arm64 app, launches
+`dist/win-arm64-unpacked/UsageMaxx.exe` with demo data, and uploads `popup-demo-arm64.png`. The
+session downloads every screenshot artifact into `test-results/ci/` and describes each.
+**Commit:** `um-step-11.1: Windows on ARM installer and smoke test`
+
+```text
+Ship Windows on ARM alongside x64.
+
+- electron-builder.yml: the NSIS target builds `x64` and `arm64` as one combined installer
+  (electron-builder's multi-arch NSIS installs the build that matches the PC), keeping the name
+  `UsageMaxx-Setup-${version}.exe`. `npm run dist:win` takes the architectures from the yml, so
+  the list lives in one place.
+- .github/workflows/ci.yml: `package` (windows-latest) builds the combined installer, smoke-tests
+  `dist/win-unpacked/UsageMaxx.exe` (x64), and uploads the installer and screenshot as before.
+  Add `package-arm64` on `windows-11-arm`: npm ci, npm run verify, `electron-vite build &&
+  electron-builder --win dir --arm64`, then `node scripts/smoke-launch.mjs --exe
+  "dist/win-arm64-unpacked/UsageMaxx.exe" --screenshot --name popup-demo-arm64` with
+  USAGEMAXX_DEMO=1, and upload the screenshot as `smoke-screenshots-arm64`. If that runner label
+  isn't available, or the job fails for runner reasons that two attempts can't fix, keep the arm64
+  build in `package`, drop only the ARM smoke job, and record it under Deferred follow-ups.
+- Check that nothing assumes x64 (paths, the powershell.exe Credential Manager reader,
+  node:sqlite, tray icons) and say so in the notes, or fix it.
+- Docs: README Install (one installer for x64 and ARM PCs, including Snapdragon laptops and
+  Parallels on Apple Silicon Macs), docs/architecture.md (build and packaging), CLAUDE.md (CI and
+  the dist:win command), and a Windows-on-ARM item in "Who verifies what".
+
+Push and watch the run with gh (always --repo memoliertorerr/OpenUsageMaxx). Download every
+screenshot artifact into test-results/ci/ and look at each. If green, flip UM11.1 to ✅ and commit
+everything as "um-step-11.1: Windows on ARM installer and smoke test" (CI-attempt commits with a
+um-step-11.1 prefix are allowed before it). Never weaken a check to get green.
+```
 
 ---
 
