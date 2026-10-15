@@ -54,12 +54,19 @@
 | UM9 | Providers: Grok + Devin + OpenCode Go + Ollama Cloud | Opus | auto | ✅ done |
 | UM10 | Settings view: providers, pins, API keys, launch at login, first-run welcome | Sonnet | auto | ✅ done |
 | UM10.1 | Read-only logins: never refresh tokens; show the re-login hint | Opus | auto | ✅ done |
-| UM11 | Windows packaging in CI: NSIS installer artifact + smoke screenshot on `windows-latest` | Sonnet | auto | ⬜ todo |
-| UM12 | README, user + developer docs, upstream/PR notes, final `CLAUDE.md` pass | Sonnet | checkpoint | ⬜ todo |
+| UM11 | Windows packaging in CI: NSIS installer artifact + smoke screenshot on `windows-latest` | Sonnet | auto | ✅ done |
+| UM11.1 | Windows on ARM (arm64): one x64 + arm64 installer, native ARM smoke screenshot in CI | Opus | auto | ✅ done |
+| UM12 | README, user + developer docs, upstream/PR notes, final `CLAUDE.md` pass | Sonnet | checkpoint | ✅ done — human check passed 2026-10-16 |
 
-**Overall status: Phases 1–2 (UM0–UM7) done; PR #1 (phase 1 → main) and the phase-2 PR (→ um/p1-foundation) are open. Phase 3 (UM8–UM10.1) is on `um/p3-providers-settings`, PR into `um/p2-dashboard`: UM8–UM10.1 done (UM10.1 added mid-plan). Phase 4 (`um/p4-ship`) has UM11 done and picks up UM10.1 by merging phase 3 before UM12. The sequence goes
-foundation → first runnable tray app with demo data at UM4 → dashboard and real providers →
-settings → Windows installer → docs, ending at a human checkpoint on a real Windows PC.**
+**Overall status: v0.1 is complete. All steps UM0–UM12 (with UM10.1 and UM11.1, added mid-plan)
+are done, the user's Windows check passed on 2026-10-16, and PRs #1–#4 were merged into `main` that
+day, in order, with merge commits, at the user's request. The phase branches are kept. New work
+starts from `main` (see Deferred follow-ups and Later). `CLAUDE.md`, which the steps below keep
+updating, became a local, gitignored file on 2026-10-16 at the user's request; it's no longer in
+the repository. At the user's request, it was also removed from git history that day: every
+branch was rewritten (`git filter-branch`, dropping `CLAUDE.md` from all commits) and force-pushed
+once, so every commit ID changed. The base is now `86d056b` (the old `85f1b20` only added
+`CLAUDE.md`). IDs in this plan are the new ones; old PR pages may still show the old IDs.**
 
 **Model note:** phases 1 and 2 need the stronger model: UM2 (contract) and UM3 (refresh
 engine) shape every later step, UM4 is the likeliest spike (tray rendering and popup
@@ -76,7 +83,8 @@ mechanical (CI packaging, docs) and fits Sonnet.
 3. **UM8 → UM10.1** · Opus · branch `um/p3-providers-settings` → PR into `um/p2-dashboard` —
    review API-key handling (DPAPI, never plaintext), the settings screenshots, and the
    read-only logins switch (UM10.1, added mid-plan).
-4. **UM11 → UM12** · Sonnet · branch `um/p4-ship` → PR into `um/p3-providers-settings` —
+4. **UM11 → UM12** (with UM11.1, added mid-plan) · Sonnet · branch `um/p4-ship` → PR into
+   `um/p3-providers-settings` —
    review the Windows CI screenshot, the installer artifact, and the README. Ends in the human
    Windows checks.
 
@@ -181,6 +189,7 @@ Steps: UM<a> → UM<b> (plan: docs/BUILD_PLAN.md) · Stacked on: <base branch / 
 | Tray icon position, overflow, DPI | **you** — UM12 checkpoint | On your Windows PC the icon sits in the notification area (bottom right); pinned bars are legible at 100% and 150% scaling; the popup opens above the icon and hides on click-away |
 | Live provider data | **you** — UM12 checkpoint | With your own logins on Windows, each provider you use shows the same numbers as its own dashboard |
 | Installer UX | **you** — UM12 checkpoint | SmartScreen warning is expected (unsigned); install, launch at login, and uninstall all work |
+| Windows on ARM | **you** — UM12 checkpoint | On Windows 11 on ARM (e.g. Parallels on an Apple Silicon Mac) the same installer installs and UsageMaxx runs natively: Task Manager → Details, add the Architecture column, and UsageMaxx reads ARM64 |
 
 Claude self-verifies everything that runs headlessly: types, tests, the macOS dev build, and
 the Windows CI build and screenshot. Anything needing a Windows desktop, real logins, or a
@@ -192,7 +201,7 @@ physical display is the human's, collected at the UM12 checkpoint.
 
 1. **Branches:** one per phase (`um/p1-foundation`, `um/p2-dashboard`,
    `um/p3-providers-settings`, `um/p4-ship`), each cut from the previous phase's branch;
-   phase 1 from `main`. Tag `pre-windows-port` marks `85f1b20`, the `main` commit before this
+   phase 1 from `main`. Tag `pre-windows-port` marks `86d056b`, the `main` commit before this
    plan. Claude never commits to `main`.
 2. **One step = one commit**, message prefixed `um-step-N:`, made **only when
    `npm run verify` is green.** Never commit red. Plain `git` commands, `git status` review
@@ -245,7 +254,7 @@ Claude stops, reports which condition fired, and waits:
 | Step wrong, not yet committed | `git status`, then `git restore . && git clean -fd` |
 | A committed step is bad | `git revert <sha>` (each step is one green commit, so this is clean) |
 | A whole phase is bad, PR not merged | Close the PR; `git reset --hard <phase-start-sha>` locally, then push with `--force-with-lease` — **the human runs this**, never Claude |
-| Abandon the whole thing | Close the PRs, delete the `um/*` branches; `pre-windows-port` (`85f1b20`) marks where it started |
+| Abandon the whole thing | Close the PRs, delete the `um/*` branches; `pre-windows-port` (`86d056b`) marks where it started |
 
 ---
 
@@ -257,7 +266,7 @@ Ran once while writing this plan:
 cd /Users/memoli/Storage/CS/OpenUsageMaxx
 git remote add upstream https://github.com/robinebers/openusage.git   # read-only reference
 git fetch upstream
-git tag pre-windows-port 85f1b20
+git tag pre-windows-port 86d056b
 git switch -c um/p1-foundation && git push -u origin um/p1-foundation
 ```
 
@@ -306,14 +315,14 @@ Do not redesign these mid-plan; a step that seems to require it is a stop condit
 ### UM0 — Scope docs · Opus · auto
 
 **Verify:** `docs/BUILD_PLAN.md`, updated `CLAUDE.md`, `LICENSE`, and `NOTICE` exist; tag
-`pre-windows-port` points at `85f1b20`; branch `um/p1-foundation` exists on origin.
+`pre-windows-port` points at `86d056b`; branch `um/p1-foundation` exists on origin.
 **Commit:** `um-step-0: add Windows port build plan, standing instructions, license`
 
 ```text
 (Executed while writing the plan.) Write docs/BUILD_PLAN.md, extend CLAUDE.md with the
 project description, stack, structure, commands, and conventions, add an MIT LICENSE with the
 user's copyright, and a NOTICE crediting robinebers/openusage (MIT) and stating the trademark
-position. Tag pre-windows-port at 85f1b20 and create um/p1-foundation from main.
+position. Tag pre-windows-port at 86d056b and create um/p1-foundation from main.
 
 There is no npm project yet, so verify is the file check in the Verify line. Flip UM0 to ✅
 and commit everything as one commit: "um-step-0: add Windows port build plan, standing
@@ -1151,6 +1160,120 @@ before it, each with a um-step-11 prefix and a description). Paste the verify ou
 `git log -1 --stat`, and the CI run URL. Never weaken a check to get green.
 ```
 
+**Implementation notes (2026-10-15):**
+
+- **The package job went green on the first attempt** (run 38780750298, commit `76e5c101`, pushed
+  as "CI attempt 1" so CI could run before the tracker flipped). It built
+  `UsageMaxx-Setup-0.1.0.exe` (about 111 MB as an artifact), launched
+  `dist/win-unpacked/UsageMaxx.exe` under Playwright with demo data, and saved `popup-demo.png`.
+  The screenshot, downloaded to `test-results/ci/`, shows the packaged app on Windows: Claude,
+  Codex, and Cursor cards in Segoe UI at 360×600, with pace colors, reset countdowns, and the
+  footer.
+- **`actions/upload-artifact@v7`, not `@v4`**: v7 is the current major, matching the v7 checkout
+  and setup-node from UM1.
+- **The icon script loads the TypeScript encoders through Vite 8's `runnerImport`**, because a
+  plain `.mjs` can't import `.ts` files. Vite is already a devDependency, so nothing was added. The
+  PNG-in-ICO writer is `src/core/ico.ts`, with a test.
+- **`CSC_IDENTITY_AUTO_DISCOVERY=false`** keeps electron-builder from looking for a signing
+  certificate, since the build is unsigned by design.
+- **The screenshot upload warns instead of failing when there's nothing to upload**, so a smoke
+  failure isn't reported twice.
+- **Not verified:** installing, launching at login, and uninstalling from the NSIS installer, the
+  tray icon in the real notification area, and DPI scaling. Those are UM12 human checks.
+
+---
+
+### UM11.1 — Windows on ARM (arm64) build · Opus · auto
+
+> **Added mid-plan 2026-10-15** — requested by the user, who tests on Parallels on an Apple
+> Silicon Mac (Windows 11 on ARM), where an x64-only build would run only under emulation.
+
+**Verify:** `npm run verify` green locally; on the pushed branch, `package (windows-latest)` is
+green and its `usagemaxx-installer` artifact is one NSIS installer holding both x64 and arm64
+builds (`UsageMaxx-Setup-<version>.exe`), with the x64 smoke screenshot as before; and
+`package (windows-11-arm)` runs verify natively on ARM, builds the arm64 app, launches
+`dist/win-arm64-unpacked/UsageMaxx.exe` with demo data, and uploads `popup-demo-arm64.png`. The
+session downloads every screenshot artifact into `test-results/ci/` and describes each.
+**Commit:** `um-step-11.1: Windows on ARM installer and smoke test`
+
+```text
+Ship Windows on ARM alongside x64.
+
+- electron-builder.yml: the NSIS target builds `x64` and `arm64` as one combined installer
+  (electron-builder's multi-arch NSIS installs the build that matches the PC), keeping the name
+  `UsageMaxx-Setup-${version}.exe`. `npm run dist:win` takes the architectures from the yml, so
+  the list lives in one place.
+- .github/workflows/ci.yml: `package` (windows-latest) builds the combined installer, smoke-tests
+  `dist/win-unpacked/UsageMaxx.exe` (x64), and uploads the installer and screenshot as before.
+  Add `package-arm64` on `windows-11-arm`: npm ci, npm run verify, `electron-vite build &&
+  electron-builder --win dir --arm64`, then `node scripts/smoke-launch.mjs --exe
+  "dist/win-arm64-unpacked/UsageMaxx.exe" --screenshot --name popup-demo-arm64` with
+  USAGEMAXX_DEMO=1, and upload the screenshot as `smoke-screenshots-arm64`. If that runner label
+  isn't available, or the job fails for runner reasons that two attempts can't fix, keep the arm64
+  build in `package`, drop only the ARM smoke job, and record it under Deferred follow-ups.
+- Check that nothing assumes x64 (paths, the powershell.exe Credential Manager reader,
+  node:sqlite, tray icons) and say so in the notes, or fix it.
+- Docs: README Install (one installer for x64 and ARM PCs, including Snapdragon laptops and
+  Parallels on Apple Silicon Macs), docs/architecture.md (build and packaging), CLAUDE.md (CI and
+  the dist:win command), and a Windows-on-ARM item in "Who verifies what".
+
+Push and watch the run with gh (always --repo memoliertorerr/OpenUsageMaxx). Download every
+screenshot artifact into test-results/ci/ and look at each. If green, flip UM11.1 to ✅ and commit
+everything as "um-step-11.1: Windows on ARM installer and smoke test" (CI-attempt commits with a
+um-step-11.1 prefix are allowed before it). Never weaken a check to get green.
+```
+
+**Implementation notes (2026-10-15):**
+
+- **Requested by the user** so the app runs natively on Windows 11 on ARM (Parallels on an Apple
+  Silicon Mac). It arrived while UM12 was being written, so it was committed after UM12; the
+  tracker lists it before UM12.
+- **The architectures are passed on the command line** (`npm run dist:win` →
+  `electron-builder --win nsis --x64 --arm64`). CI attempt 1 relied on an arch list in
+  `electron-builder.yml`, but a target given on the command line overrides it, and the log showed
+  `archs=x64`, an x64-only installer of the same size as before. Attempt 2 passes both flags.
+  In run 38783236440 the log reads `archs=x64, arm64` for one `UsageMaxx-Setup-0.1.0.exe`, packaged
+  from `dist\win-unpacked` and `dist\win-arm64-unpacked`. The `usagemaxx-installer` artifact grew
+  from 111 MB to 216 MB, and the x64 smoke screenshot from that run looked right. The yml keeps
+  `x64` only as a default, with a comment saying the command line decides.
+- **`package (windows-11-arm)` works on GitHub's hosted Windows ARM runner.** In run 38782435117
+  it ran `npm run verify` natively on ARM (all tests pass), packaged with `arch=arm64` into
+  `dist/win-arm64-unpacked`, launched that `UsageMaxx.exe` under Playwright, and uploaded
+  `popup-demo-arm64.png`. Downloaded and looked at: identical to the x64 screenshot (Claude, Codex,
+  and Cursor cards, pace colors, countdowns, footer). Nothing needed deferring.
+- **Nothing in the app assumed x64**: paths come from environment variables, the Credential
+  Manager reader is PowerShell with pointer-sized `IntPtr` marshaling (Windows on ARM ships native
+  ARM64 PowerShell), SQLite is Electron's built-in `node:sqlite`, and the tray icons are PNGs drawn
+  in code. No code changed.
+- **Not verified:** installing and running on a real Windows on ARM PC or Parallels (the UM12
+  human check, Task Manager → Details → Architecture should read ARM64).
+
+**Fix after the human check (2026-10-16):**
+
+- **Found by the user:** installing on Windows 11 on ARM (Parallels) left
+  `%LOCALAPPDATA%\Programs\UsageMaxx` without `UsageMaxx.exe` or any DLL. The Finish page's launch
+  then reported a missing shortcut target. The data files (`.pak`, `.dat`, `locales`) were there.
+- **Cause:** electron-builder's current 7-Zip packs ARM64 `.exe`/`.dll` files with its `ARM64`
+  filter. The installer unpacks with the older `Nsis7z` plugin, which can't decode that filter, and
+  `extractUsing7za` never checks its result, so the files were skipped without an error. x64 files
+  use `BCJ2`, which the plugin reads. CI listed the packages inside the installer:
+  `app-arm64.7z` used `ARM64 LZMA2:20`, `app-64.7z` used `BCJ2`.
+- **Fix:** `electron-builder.yml` sets `nsis.useZip: true` (with `differentialPackage: false`, which
+  `useZip` requires; there's no auto-update). Zip has no executable filters, and its unpacker
+  (`nsisunz`) stops with an error if anything fails. The cost is size: the combined installer grew
+  from 216 MB to 304 MB.
+- **CI now installs the real installer** with `scripts/install-check.ps1`, silently, on both
+  runners (the ARM job downloads the combined installer from `package`). The script fails unless
+  every file of the matching unpacked build arrived and `UsageMaxx.exe`'s PE header has the
+  expected architecture. Then it smoke-launches the installed app. The first version listed DLLs by
+  hand and wrongly expected `libEGL.dll`/`libGLESv2.dll`, which Electron 44 doesn't ship; it now
+  compares against the build output.
+- **Shown to catch the bug:** on the throwaway branch `um/p4-arm-install-repro` (the check without
+  the fix, run 38814352062), the ARM install check failed with 7 files missing: `UsageMaxx.exe`,
+  `ffmpeg.dll`, `d3dcompiler_47.dll`, `dxcompiler.dll`, `dxil.dll`, and the Vulkan DLLs. With the fix
+  (run 38814374954) every job passed. The ARM install reported "every file … is ARM64", and the
+  installed apps' screenshots on both runners were looked at.
+
 ---
 
 ### UM12 — README, docs, upstream notes · Sonnet · checkpoint
@@ -1216,6 +1339,36 @@ um/p3-providers-settings using the PR description template with the Windows chec
 "Who verifies what" under Needs human check, wait for CI, then stop.
 ```
 
+**Implementation notes (2026-10-15):**
+
+- **The README follows the prompt's sections**, with the screenshot from UM11's Windows CI run
+  (`docs/assets/screenshot.png`, demo data). Install points at the CI artifact, because there are
+  no releases yet; it also covers Windows 10's tray setting and what uninstalling leaves in
+  `%APPDATA%\UsageMaxx`.
+- **"Risks and terms" (added mid-plan) is as specified**, with one correction for accuracy: "backs
+  off on rate limits" now says how. Claude waits out Anthropic's `Retry-After`; the other providers
+  simply wait for the next 5-minute refresh. Also, "one request per provider every 5 minutes" became
+  "one refresh … (a few small requests each)", because Cursor and Copilot make several calls per
+  refresh. GitHub's Acceptable Use Policies are linked as the terms that govern GitHub's services,
+  without claiming more than that.
+- **`docs/upstream.md` was checked against upstream on 2026-10-15**: the owner's reply on #374, a
+  collaborator's on #1064, #1043 declined, the six Windows PRs closed unmerged, and CONTRIBUTING's
+  issue-first and no-AI-commit-message rules. Replies are paraphrased, not quoted. The draft issue
+  says plainly that it's unposted and that #1043, a near-duplicate, was declined. Nothing was
+  posted upstream.
+- **`docs/README.md` indexes every doc**, and CLAUDE.md now lists the README, the index, the
+  upstream notes, and when the README's provider table, Privacy, and Risks and terms must change.
+- **Human check (the checkpoint):** the Windows checklist in the phase-4 PR.
+
+**Human check result (2026-10-16):** the user installed the CI build on Windows 11 on ARM
+(Parallels on an Apple Silicon Mac, VM on an external SSD) and, with live Claude and Codex logins,
+reported that everything worked: install, the tray and popup, first run, and live numbers. The first
+attempt found a real bug, ARM64 program files missing after install, fixed under UM11.1. Not checked
+by hand, by the user's choice: API keys, Read-only Logins, and uninstalling; the user has no accounts
+for the other eight providers. The README's Status section says so. The user then asked for the four
+PRs to be merged into `main`, a one-time authorization: CLAUDE.md's rule that Claude never merges its
+own PR stands for future work.
+
 ---
 
 ## Deferred follow-ups (cross-step, live tracker)
@@ -1227,6 +1380,13 @@ um/p3-providers-settings using the PR description template with the Windows chec
   Star for menu bar, Refresh, and Customize on right-click. UM5 has hover refresh and click
   toggles but no context menus; UM10's settings view covers hide and pin. Adding them needs an
   IPC call that opens a native `Menu` from main at the cursor.
+- **Hand-test the rest** (surfaced by the UM12 check). Saving, revealing, and clearing an API key
+  (DPAPI), Read-only Logins with a real expired login, uninstalling, and the eight providers without a
+  live account so far (Copilot, Cursor, Devin, Grok, Ollama, OpenCode Go, OpenRouter, Z.ai).
+- **Smaller installers** (surfaced by the UM11.1 fix). Zip packaging makes the combined x64 + arm64
+  installer 304 MB. Options: separate per-architecture installers, or 7z again once electron-builder's
+  `Nsis7z` decodes the ARM64 filter (or lets the filter be turned off). `install-check.ps1` will show
+  whether either works.
 - **New providers in later versions** (surfaced by UM10). Upstream runs the first-run detection once
   for each provider an update adds (missing from both `enabledProviders` and `knownProviders`),
   turning it on only when its credentials are found and `autoEnable` allows it. v0.1 has no earlier
@@ -1273,6 +1433,15 @@ Populated from real friction, not speculation:
   `CLAUDE.md`.
 - **Windows 11 hides new tray icons in the overflow (^) menu** and has no API to pin them. The
   README must tell users how to show it on the taskbar.
+- **7z-packed NSIS installers silently drop ARM64 program files.** electron-builder's current 7-Zip
+  compresses ARM64 `.exe`/`.dll` with the `ARM64` filter; the installer's `Nsis7z` decoder can't
+  read it and doesn't report the failure. Keep `nsis.useZip: true`, and keep CI's
+  `scripts/install-check.ps1`, which installs the real installer on x64 and ARM. Launching the
+  unpacked build alone can't catch this.
+- **`CLAUDE.md` is local only** (since 2026-10-16). It's gitignored and not in the repository, so
+  a fresh clone has no agent instructions. Don't commit it or link to it from tracked docs.
+- **A command-line target overrides electron-builder.yml's arch list** (`--win nsis` builds only the
+  host architecture). `npm run dist:win` passes `--x64 --arm64` explicitly.
 
 ---
 

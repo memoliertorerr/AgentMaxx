@@ -17,7 +17,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "test": "vitest run",
     "verify": "npm run typecheck && npm run test",
-    "dist:win": "electron-vite build && electron-builder --win nsis --x64 --publish never"
+    "dist:win": "electron-vite build && electron-builder --win nsis --x64 --arm64 --publish never"
   },
   "devDependencies": {
     "@types/node": "24.19.2",

@@ -137,3 +137,34 @@ Development runs redirect `userData` into the repo's `.cache/` (`scripts/env.sh`
 
 `scripts/smoke-launch.mjs` uses these to launch the built or packaged app under Playwright and
 screenshot the popup.
+
+## Build and packaging
+
+- `npm run build` bundles main, preload, and renderer into `out/` with electron-vite. React is a
+  devDependency that Vite bundles, so the packaged app ships no `node_modules`.
+- `npm run dist:win` runs electron-builder (`electron-builder.yml`): one NSIS installer holding
+  x64 and arm64 builds (electron-builder's multi-arch NSIS picks the one that matches the PC),
+  per-user, with a choice of install folder, a Start-menu shortcut, and no desktop shortcut. The
+  architectures come from the script's `--x64 --arm64` flags, because a command-line target
+  overrides the yml's arch list. It writes `dist/UsageMaxx-Setup-<version>.exe`
+  and the unpacked apps in `dist/win-unpacked/` (x64) and `dist/win-arm64-unpacked/`. The build
+  is unsigned, so Windows SmartScreen warns on first run.
+- Each architecture is packed into the installer as a zip (`nsis.useZip`), not 7z: electron-builder's
+  7-Zip compresses ARM64 program files with a filter the installer's 7z decoder can't read, and it
+  skipped them without an error. The zip unpacker stops with an error instead.
+- Nothing in the app is architecture-specific: paths come from the environment, the Credential
+  Manager reader is PowerShell with pointer-sized `IntPtr` marshaling (native ARM64 PowerShell
+  on Windows on ARM), SQLite is Electron's built-in `node:sqlite`, and the tray icons are PNGs
+  drawn in code.
+- The app icon (`build/icon.png`, `build/icon.ico` with 16–256 px PNG entries) is drawn by the
+  same code as the tray's app mark: `scripts/make-icons.mjs` loads `src/main/trayIcon.ts` and
+  `src/core/ico.ts` through Vite's `runnerImport`. The files are committed; rerun the script
+  after changing the mark.
+- CI's `package (windows-latest)` job builds the combined installer on a real Windows runner,
+  launches the unpacked x64 `UsageMaxx.exe` with demo data under Playwright, screenshots the
+  popup, and uploads `usagemaxx-installer` and `smoke-screenshots` as artifacts.
+  `package (windows-11-arm)` runs verify natively on GitHub's Windows ARM runner, builds the
+  arm64 app, launches it the same way, and uploads `smoke-screenshots-arm64`. Both jobs also run
+  the real installer silently (`scripts/install-check.ps1`): every file of the matching unpacked
+  build must arrive, `UsageMaxx.exe` must be the right architecture, and the installed app must
+  launch.
