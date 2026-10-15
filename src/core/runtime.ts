@@ -39,7 +39,10 @@ export interface CommandRunner {
 
 /** Keys the user saved in Settings → API Keys (decrypted on demand). */
 export interface ApiKeyStore {
+  /** The saved key, decrypted. Throws `ProviderError` when it exists but can't be decrypted. */
   get(providerId: string): Promise<string | undefined>
+  /** Whether a key is saved, without decrypting it (first-run detection). */
+  has(providerId: string): Promise<boolean>
 }
 
 export interface ProviderContext {

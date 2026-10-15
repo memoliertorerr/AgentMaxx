@@ -1,8 +1,10 @@
 import { join } from 'node:path'
-import { app, nativeTheme } from 'electron'
+import { app, nativeTheme, safeStorage } from 'electron'
+import { nodeFileSystem } from '../core/fs'
 import { IPC } from '../core/ipc'
 import { createProviders } from '../core/providers/registry'
 import type { Theme } from '../core/settings'
+import { ApiKeyVault, type KeyCipher } from './apiKeys'
 import { createContextFactory } from './context'
 import { registerIpc } from './ipc'
 import { createFileLogger } from './log'
@@ -30,6 +32,14 @@ if (userDataOverride) {
 if (demo) app.setPath('userData', join(app.getPath('userData'), 'demo'))
 
 const BACKGROUND = { light: '#F7F7F8', dark: '#1F1F22' } as const
+
+/** DPAPI on Windows. Linux's "basic_text" backend is obfuscation, not encryption, so it counts as unavailable. */
+const safeStorageCipher: KeyCipher = {
+  isAvailable: () =>
+    safeStorage.isEncryptionAvailable() && !(process.platform === 'linux' && safeStorage.getSelectedStorageBackend() === 'basic_text'),
+  encrypt: (plain) => safeStorage.encryptString(plain),
+  decrypt: (encrypted) => safeStorage.decryptString(encrypted)
+}
 const TRAY_RETICK_MS = 30_000
 
 function applyTheme(theme: Theme, popup?: Popup): void {
@@ -47,6 +57,13 @@ async function main(): Promise<void> {
   log.info('app', `UsageMaxx ${app.getVersion()} starting on ${process.platform} (demo: ${demo})`)
 
   const providers = createProviders({ demo })
+  const keys = new ApiKeyVault({
+    fs: nodeFileSystem,
+    filePath: join(app.getPath('userData'), 'api-keys.json'),
+    cipher: safeStorageCipher,
+    env: () => process.env,
+    log
+  })
   const store = await AppStore.create({
     providers,
     userDataDir: app.getPath('userData'),
@@ -56,8 +73,7 @@ async function main(): Promise<void> {
     makeContext: createContextFactory({
       log,
       secrets: createWindowsSecretStore(log),
-      // Filled in by UM8 (saved API keys).
-      apiKeys: { get: async () => undefined }
+      apiKeys: keys
     })
   })
   if (demo && store.getSettings().enabledProviders === null) {
@@ -87,7 +103,7 @@ async function main(): Promise<void> {
     quit: () => void quit()
   })
 
-  registerIpc({ store, popup, log, quit: () => void quit() })
+  registerIpc({ store, popup, keys, log, quit: () => void quit() })
   store.subscribe((state) => {
     if (!popup.window.isDestroyed()) popup.window.webContents.send(IPC.state, state)
     tray.update(state, new Date())

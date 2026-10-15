@@ -22,6 +22,7 @@ export interface MetricView {
   /** Display name (the descriptor's title, else its id). */
   title: string
   valueWord?: string
+  limitNoun?: string
   enabled: boolean
   onDemand: boolean
   pinned: boolean
@@ -86,6 +87,7 @@ export function buildAppState(input: BuildStateInput): AppState {
         id: descriptor.id,
         title: descriptor.title ?? descriptor.id,
         ...(descriptor.valueWord ? { valueWord: descriptor.valueWord } : {}),
+        ...(descriptor.limitNoun ? { limitNoun: descriptor.limitNoun } : {}),
         enabled: flags.enabled,
         onDemand: flags.onDemand,
         pinned: flags.pinned,

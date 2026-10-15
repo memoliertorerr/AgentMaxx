@@ -26,7 +26,11 @@ const api: UsageMaxxApi = {
   openExternal: (url) => ipcRenderer.invoke(IPC.openExternal, url),
   hidePopup: () => ipcRenderer.send(IPC.hidePopup),
   resizePopup: (height) => ipcRenderer.send(IPC.resizePopup, height),
-  quit: () => ipcRenderer.send(IPC.quit)
+  quit: () => ipcRenderer.send(IPC.quit),
+  getKeyStatus: () => ipcRenderer.invoke(IPC.getKeyStatus),
+  saveKey: (providerId, key) => ipcRenderer.invoke(IPC.saveKey, providerId, key),
+  clearKey: (providerId) => ipcRenderer.invoke(IPC.clearKey, providerId),
+  revealKey: (providerId) => ipcRenderer.invoke(IPC.revealKey, providerId)
 }
 
 contextBridge.exposeInMainWorld('usagemaxx', api)

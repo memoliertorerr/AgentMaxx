@@ -127,7 +127,7 @@ export function fakeContext(options: FakeContextOptions = {}): FakeContext {
       run: async (command, args) =>
         commands[[command, ...args].join(' ')] ?? { code: null, stdout: '', stderr: `${command}: not found` }
     },
-    apiKeys: { get: async (providerId) => apiKeys[providerId] },
+    apiKeys: { get: async (providerId) => apiKeys[providerId], has: async (providerId) => apiKeys[providerId] !== undefined },
     manual: false
   }
 }

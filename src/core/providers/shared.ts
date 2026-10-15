@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { apiKeyProvider, keyFromEnvironment } from '../apiKeys'
 import { ProviderError } from '../errors'
 import { FileAccessError } from '../fs'
 import { asObject, parseJson, type JsonObject } from '../parse'
@@ -99,4 +100,30 @@ export function parseRetryAfterSeconds(value: string | undefined, now: Date): nu
   const date = Date.parse(raw)
   if (Number.isNaN(date)) return undefined
   return Math.max(0, Math.ceil((date - now.getTime()) / 1000))
+}
+
+export interface ResolvedApiKey {
+  value: string
+  source: 'saved' | 'environment'
+}
+
+function keyProvider(providerId: string) {
+  const provider = apiKeyProvider(providerId)
+  if (!provider) throw new Error(`${providerId} has no API key settings`)
+  return provider
+}
+
+/** The key a key-based provider uses: the one saved in Settings, else its environment variables. */
+export async function resolveApiKey(ctx: ProviderContext, providerId: string): Promise<ResolvedApiKey | undefined> {
+  const provider = keyProvider(providerId)
+  const saved = await ctx.apiKeys.get(providerId)
+  if (saved) return { value: saved, source: 'saved' }
+  const fromEnvironment = keyFromEnvironment(ctx.env, provider.envNames)
+  return fromEnvironment ? { value: fromEnvironment, source: 'environment' } : undefined
+}
+
+/** Whether a key is available, without decrypting a saved one. */
+export async function hasApiKey(ctx: ProviderContext, providerId: string): Promise<boolean> {
+  const provider = keyProvider(providerId)
+  return (await ctx.apiKeys.has(providerId)) || keyFromEnvironment(ctx.env, provider.envNames) !== undefined
 }

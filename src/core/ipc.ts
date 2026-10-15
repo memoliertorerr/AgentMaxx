@@ -1,3 +1,4 @@
+import type { ApiKeyStatus } from './apiKeys'
 import type { ResetMode, TimeFormat } from './format'
 import type { DisplayMode } from './progress'
 import { setMetricFlag, setProviderEnabled, togglePin, type Settings, type Theme } from './settings'
@@ -17,7 +18,11 @@ export const IPC = {
   openExternal: 'usagemaxx:open-external',
   hidePopup: 'usagemaxx:hide-popup',
   resizePopup: 'usagemaxx:resize-popup',
-  quit: 'usagemaxx:quit'
+  quit: 'usagemaxx:quit',
+  getKeyStatus: 'usagemaxx:get-key-status',
+  saveKey: 'usagemaxx:save-key',
+  clearKey: 'usagemaxx:clear-key',
+  revealKey: 'usagemaxx:reveal-key'
 } as const
 
 export type SettingsChange =
@@ -34,6 +39,12 @@ export type SettingsChange =
 
 export type ChangeResult = { ok: true } | { ok: false; reason: string }
 
+/** Where a key-based provider's API key comes from. The key itself only crosses IPC on reveal. */
+export interface ApiKeyEntry {
+  providerId: string
+  status: ApiKeyStatus
+}
+
 /** Screens the main process can ask the popup to show (e.g. tray menu → Settings). */
 export type View = 'dashboard' | 'settings'
 
@@ -49,6 +60,11 @@ export interface UsageMaxxApi {
   hidePopup(): void
   resizePopup(height: number): void
   quit(): void
+  getKeyStatus(): Promise<ApiKeyEntry[]>
+  saveKey(providerId: string, key: string): Promise<ChangeResult>
+  clearKey(providerId: string): Promise<ChangeResult>
+  /** The key in use, decrypted — only when the user asks to see it. */
+  revealKey(providerId: string): Promise<string | undefined>
 }
 
 function isString(value: unknown): value is string {

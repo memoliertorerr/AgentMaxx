@@ -50,6 +50,15 @@ abort signal, the OS credential store, a command runner, and saved API keys. Tes
 
 `hasLocalCredentials()` is a cheap, local-only check used by first-run detection.
 
+### API keys
+
+OpenRouter and Z.ai need a key the user supplies (`src/core/apiKeys.ts` lists them and their
+environment-variable fallbacks). `ApiKeyVault` (`src/main/apiKeys.ts`) keeps saved keys in
+`api-keys.json`, each encrypted with Electron `safeStorage` (DPAPI on Windows) and stored as
+base64. When encryption isn't available it refuses to save; there's no plaintext fallback.
+Providers read `ctx.apiKeys` (the vault) first, then the environment. Status checks and
+first-run detection never decrypt; the renderer sees a key only through an explicit reveal.
+
 ## Refreshing
 
 `RefreshEngine` (`src/core/refresh.ts`) refreshes every enabled provider in parallel at launch
@@ -83,7 +92,8 @@ tolerantly, so a corrupt file falls back to defaults.
   and an options menu. The popup sizes itself to its content up to 600 px, then scrolls.
 - **IPC** (`src/core/ipc.ts`). The channel names, the `window.usagemaxx` API, and the validation
   of every settings change. The main process rejects malformed payloads and opens only
-  `http(s)` links.
+  `http(s)` links. API keys have their own calls: `getKeyStatus`, `saveKey`, `clearKey`, and
+  `revealKey`, the only one that returns a key.
 
 ## Where data lives
 
@@ -93,6 +103,7 @@ All under Electron's `userData` folder (`%APPDATA%\UsageMaxx` on Windows):
 |---|---|
 | `settings.json` | Settings |
 | `snapshots.json` | Last good snapshot per provider |
+| `api-keys.json` | Saved API keys, DPAPI-encrypted, base64 |
 | `logs/usagemaxx.log` | App log, rotated past 2 MB. Never contains secrets |
 
 Development runs redirect `userData` into the repo's `.cache/` (`scripts/env.sh`). Demo mode

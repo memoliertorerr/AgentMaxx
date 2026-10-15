@@ -45,12 +45,13 @@ export function dateOptions(settings: Settings): DateFormatOptions {
   return { timeFormat: settings.timeFormat }
 }
 
-export function progressRow(line: ProgressLine, metric: Pick<MetricView, 'sessionStartSignal'>, settings: Settings, now: Date): ProgressRowModel {
+export function progressRow(line: ProgressLine, metric: Pick<MetricView, 'sessionStartSignal' | 'limitNoun'>, settings: Settings, now: Date): ProgressRowModel {
   const options = {
     now,
     resetMode: settings.resetMode,
     dateFormat: dateOptions(settings),
-    ...(metric.sessionStartSignal ? { sessionStartSignal: metric.sessionStartSignal } : {})
+    ...(metric.sessionStartSignal ? { sessionStartSignal: metric.sessionStartSignal } : {}),
+    ...(metric.limitNoun ? { limitNoun: metric.limitNoun } : {})
   }
   const state = meterState(line, options)
   const trailing = progressTrailing(line, options)

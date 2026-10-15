@@ -122,6 +122,8 @@ export interface MetricDescriptor {
   title?: string
   /** Trailing word for a lone dollar value on an unbounded row: "$12.34 spent", "$5.00 left". */
   valueWord?: string
+  /** Word after a bounded dollar meter's limit: "$100 purchased" (default "limit"). */
+  limitNoun?: string
   defaultEnabled: boolean
   /** Hidden behind the card's caret by default. */
   defaultOnDemand: boolean

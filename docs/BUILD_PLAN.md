@@ -50,13 +50,13 @@
 | UM5 | Dashboard UI: provider cards, meters, pace colors, resets, errors, footer | Opus | auto | ✅ done |
 | UM6 | Providers: Claude + Codex | Opus | auto | ✅ done |
 | UM7 | Providers: Cursor + Copilot (incl. Windows Credential Manager reader) | Opus | auto | ✅ done |
-| UM8 | Providers: OpenRouter + Z.ai + encrypted API-key storage | Sonnet | auto | ⬜ todo |
+| UM8 | Providers: OpenRouter + Z.ai + encrypted API-key storage | Sonnet | auto | ✅ done |
 | UM9 | Providers: Grok + Devin + OpenCode Go + Ollama Cloud | Opus | auto | ⬜ todo |
 | UM10 | Settings view: providers, pins, API keys, launch at login, first-run welcome | Sonnet | auto | ⬜ todo |
 | UM11 | Windows packaging in CI: NSIS installer artifact + smoke screenshot on `windows-latest` | Sonnet | auto | ⬜ todo |
 | UM12 | README, user + developer docs, upstream/PR notes, final `CLAUDE.md` pass | Sonnet | checkpoint | ⬜ todo |
 
-**Overall status: Phases 1–2 (UM0–UM7) done; PR #1 (phase 1 → main) and the phase-2 PR (→ um/p1-foundation) are open. Next is phase 3 from UM8 (OpenRouter + Z.ai). The sequence goes
+**Overall status: Phases 1–2 (UM0–UM7) done; PR #1 (phase 1 → main) and the phase-2 PR (→ um/p1-foundation) are open. Phase 3 is in progress on `um/p3-providers-settings`: UM8 done, next is UM9 (Grok, Devin, OpenCode Go, Ollama). The sequence goes
 foundation → first runnable tray app with demo data at UM4 → dashboard and real providers →
 settings → Windows installer → docs, ending at a human checkpoint on a real Windows PC.**
 
@@ -883,6 +883,33 @@ everything as one commit: "um-step-8: OpenRouter and Z.ai providers with encrypt
 Paste the verify output and `git log -1 --stat`. If it is still red after two honest fix
 attempts, stop and report — never commit red, never weaken a check to get green.
 ```
+
+**Implementation notes (2026-10-15):**
+
+- **The key catalog lives in `src/core/apiKeys.ts`**, which is renderer-safe: the providers, their
+  environment fallbacks, the status, and key validation. UM10's API Keys screen imports it.
+  `src/main/apiKeys.ts` (`ApiKeyVault`) takes the cipher as an injected `KeyCipher`, so it has no
+  Electron import and is tested under Node. `src/main/index.ts` binds it to `safeStorage`.
+- **Key status has a fourth state, `overrideActive`**, which upstream uses for a saved key that
+  overrides an environment key ("Custom Key"; clearing it falls back to the environment).
+- **`OPENROUTER_KEY` is a second OpenRouter fallback**, after `OPENROUTER_API_KEY`, as upstream
+  does.
+- **`ApiKeyStore` gained `has()`.** Key status and `hasLocalCredentials` check for a saved key
+  without decrypting it, so first-run detection and the settings screen never call DPAPI (or the
+  macOS Keychain in dev runs). A key that exists but won't decrypt (another account or PC) is a
+  `credentialAccess` error telling the user to save it again.
+- **Linux's `basic_text` safeStorage backend counts as unavailable**, because it's obfuscation, not
+  encryption. Windows uses DPAPI.
+- **Saving or clearing a key refreshes that provider** at once when it's enabled.
+- **Metric descriptors gained `limitNoun`** (upstream `WidgetData.limitNoun`), so OpenRouter's
+  Credits meter reads "$100 purchased". Ollama's Monthly meter (UM9) uses it too ("included").
+- **Upstream's macOS config files** (`~/.config/openusage/<provider>.json`) aren't read. The
+  encrypted store replaces them, and the product name mustn't appear in paths.
+- **Z.ai with an empty `limits` array returns no lines**, so its meters read "No data" instead of
+  upstream's separate "No usage data" status badge. "No active GLM Coding Plan" is a thrown
+  `notAvailable` error with upstream's copy, matching upstream's error snapshot.
+- **Not verified:** live calls (fixtures follow upstream's tests and captured payloads), and
+  DPAPI itself, which only runs in the packaged app on Windows (UM12 human check).
 
 ---
 
