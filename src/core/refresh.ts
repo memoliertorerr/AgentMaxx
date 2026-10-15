@@ -1,6 +1,9 @@
-import { ProviderError, toErrorInfo, type ErrorInfo } from './errors'
+import { ProviderError, toErrorInfo } from './errors'
 import type { Logger, ProviderContext, ProviderRuntime } from './runtime'
+import type { ProviderState } from './state'
 import type { ProviderSnapshot } from './types'
+
+export type { ProviderState } from './state'
 
 // The refresh loop (upstream docs/refreshing.md): every enabled provider refreshes in parallel
 // at launch and every five minutes; a provider that hangs is given up on after two minutes; a
@@ -8,16 +11,6 @@ import type { ProviderSnapshot } from './types'
 
 export const REFRESH_INTERVAL_MS = 5 * 60_000
 export const PROVIDER_TIMEOUT_MS = 120_000
-
-export interface ProviderState {
-  snapshot?: ProviderSnapshot
-  /** ISO time of the last successful refresh in this session. */
-  lastSuccessAt?: string
-  /** True while the snapshot came from the disk cache and hasn't been refreshed this session. */
-  fromPreviousSession: boolean
-  refreshing: boolean
-  error?: ErrorInfo
-}
 
 export interface RefreshEngineOptions {
   providers: readonly ProviderRuntime[]

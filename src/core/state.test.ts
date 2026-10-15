@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import type { ProviderState } from './refresh'
 import type { ProviderRuntime } from './runtime'
 import { defaultSettings } from './settings'
-import { buildAppState, pinnedMetrics } from './state'
+import { buildAppState, pinnedMetrics, type ProviderState } from './state'
 
 const provider: ProviderRuntime = {
   info: { id: 'claude', displayName: 'Claude', brandColor: '#D97757', links: [], autoEnable: true },

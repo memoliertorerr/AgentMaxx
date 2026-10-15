@@ -46,7 +46,7 @@
 | UM1 | Scaffold Electron + electron-vite + React + TS strict; CI running verify on Ubuntu + Windows | Opus | auto | ✅ done |
 | UM2 | Core contract: metric types, provider runtime, errors, HTTP, Windows paths, formatting | Opus | auto | ✅ done |
 | UM3 | Refresh engine, snapshot cache, settings store | Opus | auto | ✅ done |
-| UM4 | Tray + popup window + positioning + dynamic tray icon + demo provider (first runnable) | Opus | auto | ⬜ todo |
+| UM4 | Tray + popup window + positioning + dynamic tray icon + demo provider (first runnable) | Opus | auto | ✅ done |
 | UM5 | Dashboard UI: provider cards, meters, pace colors, resets, errors, footer | Opus | auto | ⬜ todo |
 | UM6 | Providers: Claude + Codex | Opus | auto | ⬜ todo |
 | UM7 | Providers: Cursor + Copilot (incl. Windows Credential Manager reader) | Opus | auto | ⬜ todo |
@@ -56,7 +56,7 @@
 | UM11 | Windows packaging in CI: NSIS installer artifact + smoke screenshot on `windows-latest` | Sonnet | auto | ⬜ todo |
 | UM12 | README, user + developer docs, upstream/PR notes, final `CLAUDE.md` pass | Sonnet | checkpoint | ⬜ todo |
 
-**Overall status: UM0–UM3 done. Next is UM4 (tray, popup, demo data), which ends phase 1. The sequence goes
+**Overall status: Phase 1 (UM0–UM4) done; its PR is open into main. Next is phase 2 from UM5 (dashboard UI). The sequence goes
 foundation → first runnable tray app with demo data at UM4 → dashboard and real providers →
 settings → Windows installer → docs, ending at a human checkpoint on a real Windows PC.**
 
@@ -619,6 +619,28 @@ and report — never commit red, never weaken a check to get green.
 This ends phase 1: push the branch, open the PR into main using the PR description template,
 wait for CI, then stop (unless told to run on).
 ```
+
+**Implementation notes (2026-10-15):**
+
+- **The tray's pure parts live in `src/main/trayModel.ts`.** `trayMeters` and `trayTooltip`
+  sit there, separate from `tray.ts`, because `tray.ts` imports Electron and so can't be unit
+  tested under Node.
+- **`ProviderState` moved from `refresh.ts` to `state.ts`, and `ProviderEntry` was added to
+  `types.ts`.** `tsc` follows type-only imports, so `state.ts` → `refresh.ts` → `runtime.ts` →
+  `fs.ts` pulled `node:fs` into the renderer typecheck, which has no Node types.
+- **Added a `navigate` IPC event** (tray menu → Settings) instead of overloading the state
+  message. `View` is `'dashboard' | 'settings'`.
+- **Demo mode stores data in `<userData>/demo` and pre-enables every demo provider.** Demo ids
+  are `demo-*`. Each smoke run uses a fresh profile under `test-results/`, so screenshots are
+  reproducible.
+- **The renderer ships a CSP** (`script-src 'self'`), and the main process blocks navigation and
+  `window.open`.
+- **Popup height comes from the renderer** (`resizePopup`), clamped to 160–600 px; content
+  beyond that scrolls (UM5).
+- **Verified:** `npm run verify` (113 tests) and a macOS Playwright screenshot of the demo
+  popup, which shows every provider, formatting, the "Outdated" flag, and the error message.
+  It's unstyled (dark-on-dark text); UM5 styles it. **Not verified:** the Windows tray click
+  and positioning (UM11 runs it on Windows; the human checks at UM12).
 
 ---
 

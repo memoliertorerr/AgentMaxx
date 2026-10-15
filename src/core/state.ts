@@ -1,11 +1,21 @@
 import type { ErrorInfo } from './errors'
-import type { ProviderState } from './refresh'
-import type { ProviderRuntime } from './runtime'
 import { resolveMetrics, type Settings } from './settings'
-import type { MetricLine, ProviderInfo, SessionStartSignal } from './types'
+import type { MetricLine, ProviderEntry, ProviderInfo, ProviderSnapshot, SessionStartSignal } from './types'
 
 // The read-only picture the renderer and tray draw from. Built by a pure function so the UI
-// never reaches into the engine or settings directly. Renderer-safe types only.
+// never reaches into the engine or settings directly. Renderer-safe: no Node imports, direct
+// or through type imports (the renderer typecheck has no Node types).
+
+/** One provider's refresh state, owned by the refresh engine. */
+export interface ProviderState {
+  snapshot?: ProviderSnapshot
+  /** ISO time of the last successful refresh in this session. */
+  lastSuccessAt?: string
+  /** True while the snapshot came from the disk cache and hasn't been refreshed this session. */
+  fromPreviousSession: boolean
+  refreshing: boolean
+  error?: ErrorInfo
+}
 
 export interface MetricView {
   id: string
@@ -47,7 +57,7 @@ export interface AppState {
 
 export interface BuildStateInput {
   version: string
-  providers: readonly ProviderRuntime[]
+  providers: readonly ProviderEntry[]
   states: (id: string) => ProviderState | undefined
   settings: Settings
   now: Date

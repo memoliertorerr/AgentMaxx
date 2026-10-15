@@ -108,6 +108,12 @@ export interface ProviderInfo {
  */
 export type SessionStartSignal = 'zeroUsage' | 'missingResetDate'
 
+/** What the UI needs to know about a provider, independent of how it fetches data. */
+export interface ProviderEntry {
+  readonly info: ProviderInfo
+  readonly metrics: readonly MetricDescriptor[]
+}
+
 /** A metric a provider can produce, keyed by the line label it emits. */
 export interface MetricDescriptor {
   /** Equals the `label` of the line that feeds it. */

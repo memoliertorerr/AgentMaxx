@@ -1,7 +1,7 @@
 import type { FileSystem } from './fs'
 import type { HttpClient } from './http'
 import type { Env, ResolvedPaths } from './paths'
-import type { MetricDescriptor, ProviderInfo, ProviderSnapshot } from './types'
+import type { ProviderEntry, ProviderInfo, ProviderSnapshot } from './types'
 
 // The provider contract (upstream `ProviderRuntime`). Every side effect a provider needs comes in
 // through `ProviderContext`, so providers are tested with fakes and never touch the real machine.
@@ -56,9 +56,7 @@ export interface ProviderContext {
   manual: boolean
 }
 
-export interface ProviderRuntime {
-  readonly info: ProviderInfo
-  readonly metrics: readonly MetricDescriptor[]
+export interface ProviderRuntime extends ProviderEntry {
   /** Latest usage. Throws `ProviderError` on failure; the engine keeps the last good snapshot. */
   refresh(ctx: ProviderContext): Promise<ProviderSnapshot>
   /**
