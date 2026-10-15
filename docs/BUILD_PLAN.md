@@ -1242,6 +1242,32 @@ um-step-11.1 prefix are allowed before it). Never weaken a check to get green.
 - **Not verified:** installing and running on a real Windows on ARM PC or Parallels (the UM12
   human check, Task Manager → Details → Architecture should read ARM64).
 
+**Fix after the human check (2026-10-16):**
+
+- **Found by the user:** installing on Windows 11 on ARM (Parallels) left
+  `%LOCALAPPDATA%\Programs\UsageMaxx` without `UsageMaxx.exe` or any DLL. The Finish page's launch
+  then reported a missing shortcut target. The data files (`.pak`, `.dat`, `locales`) were there.
+- **Cause:** electron-builder's current 7-Zip packs ARM64 `.exe`/`.dll` files with its `ARM64`
+  filter. The installer unpacks with the older `Nsis7z` plugin, which can't decode that filter, and
+  `extractUsing7za` never checks its result, so the files were skipped without an error. x64 files
+  use `BCJ2`, which the plugin reads. CI listed the packages inside the installer:
+  `app-arm64.7z` used `ARM64 LZMA2:20`, `app-64.7z` used `BCJ2`.
+- **Fix:** `electron-builder.yml` sets `nsis.useZip: true` (with `differentialPackage: false`, which
+  `useZip` requires; there's no auto-update). Zip has no executable filters, and its unpacker
+  (`nsisunz`) stops with an error if anything fails. The cost is size: the combined installer grew
+  from 216 MB to 304 MB.
+- **CI now installs the real installer** with `scripts/install-check.ps1`, silently, on both
+  runners (the ARM job downloads the combined installer from `package`). The script fails unless
+  every file of the matching unpacked build arrived and `UsageMaxx.exe`'s PE header has the
+  expected architecture. Then it smoke-launches the installed app. The first version listed DLLs by
+  hand and wrongly expected `libEGL.dll`/`libGLESv2.dll`, which Electron 44 doesn't ship; it now
+  compares against the build output.
+- **Shown to catch the bug:** on the throwaway branch `um/p4-arm-install-repro` (the check without
+  the fix, run 38814352062), the ARM install check failed with 7 files missing: `UsageMaxx.exe`,
+  `ffmpeg.dll`, `d3dcompiler_47.dll`, `dxcompiler.dll`, `dxil.dll`, and the Vulkan DLLs. With the fix
+  (run 38814374954) every job passed. The ARM install reported "every file … is ARM64", and the
+  installed apps' screenshots on both runners were looked at.
+
 ---
 
 ### UM12 — README, docs, upstream notes · Sonnet · checkpoint
@@ -1339,6 +1365,10 @@ um/p3-providers-settings using the PR description template with the Windows chec
   Star for menu bar, Refresh, and Customize on right-click. UM5 has hover refresh and click
   toggles but no context menus; UM10's settings view covers hide and pin. Adding them needs an
   IPC call that opens a native `Menu` from main at the cursor.
+- **Smaller installers** (surfaced by the UM11.1 fix). Zip packaging makes the combined x64 + arm64
+  installer 304 MB. Options: separate per-architecture installers, or 7z again once electron-builder's
+  `Nsis7z` decodes the ARM64 filter (or lets the filter be turned off). `install-check.ps1` will show
+  whether either works.
 - **New providers in later versions** (surfaced by UM10). Upstream runs the first-run detection once
   for each provider an update adds (missing from both `enabledProviders` and `knownProviders`),
   turning it on only when its credentials are found and `autoEnable` allows it. v0.1 has no earlier
@@ -1385,6 +1415,13 @@ Populated from real friction, not speculation:
   `CLAUDE.md`.
 - **Windows 11 hides new tray icons in the overflow (^) menu** and has no API to pin them. The
   README must tell users how to show it on the taskbar.
+- **7z-packed NSIS installers silently drop ARM64 program files.** electron-builder's current 7-Zip
+  compresses ARM64 `.exe`/`.dll` with the `ARM64` filter; the installer's `Nsis7z` decoder can't
+  read it and doesn't report the failure. Keep `nsis.useZip: true`, and keep CI's
+  `scripts/install-check.ps1`, which installs the real installer on x64 and ARM. Launching the
+  unpacked build alone can't catch this.
+- **A command-line target overrides electron-builder.yml's arch list** (`--win nsis` builds only the
+  host architecture). `npm run dist:win` passes `--x64 --arm64` explicitly.
 
 ---
 

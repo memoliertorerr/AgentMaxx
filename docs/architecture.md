@@ -149,6 +149,9 @@ screenshot the popup.
   overrides the yml's arch list. It writes `dist/UsageMaxx-Setup-<version>.exe`
   and the unpacked apps in `dist/win-unpacked/` (x64) and `dist/win-arm64-unpacked/`. The build
   is unsigned, so Windows SmartScreen warns on first run.
+- Each architecture is packed into the installer as a zip (`nsis.useZip`), not 7z: electron-builder's
+  7-Zip compresses ARM64 program files with a filter the installer's 7z decoder can't read, and it
+  skipped them without an error. The zip unpacker stops with an error instead.
 - Nothing in the app is architecture-specific: paths come from the environment, the Credential
   Manager reader is PowerShell with pointer-sized `IntPtr` marshaling (native ARM64 PowerShell
   on Windows on ARM), SQLite is Electron's built-in `node:sqlite`, and the tray icons are PNGs
@@ -161,4 +164,7 @@ screenshot the popup.
   launches the unpacked x64 `UsageMaxx.exe` with demo data under Playwright, screenshots the
   popup, and uploads `usagemaxx-installer` and `smoke-screenshots` as artifacts.
   `package (windows-11-arm)` runs verify natively on GitHub's Windows ARM runner, builds the
-  arm64 app, launches it the same way, and uploads `smoke-screenshots-arm64`.
+  arm64 app, launches it the same way, and uploads `smoke-screenshots-arm64`. Both jobs also run
+  the real installer silently (`scripts/install-check.ps1`): every file of the matching unpacked
+  build must arrive, `UsageMaxx.exe` must be the right architecture, and the installed app must
+  launch.
