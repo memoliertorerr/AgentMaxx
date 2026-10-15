@@ -7,6 +7,7 @@ import type { Theme } from '../core/settings'
 import { ApiKeyVault, type KeyCipher } from './apiKeys'
 import { createContextFactory } from './context'
 import { registerIpc } from './ipc'
+import { createLoginItem } from './loginItem'
 import { createFileLogger } from './log'
 import { createWindowsSecretStore } from './windowsCredentials'
 import { Popup } from './popup'
@@ -76,7 +77,8 @@ async function main(): Promise<void> {
       apiKeys: keys
     })
   })
-  if (demo && store.getSettings().enabledProviders === null) {
+  // Demo mode skips the welcome screen, unless a smoke run asked to screenshot it.
+  if (demo && store.getSettings().enabledProviders === null && smokeView !== 'welcome') {
     const ids = providers.map((provider) => provider.info.id)
     await store.updateSettings((settings) => ({ ...settings, enabledProviders: ids, knownProviders: ids }))
   }
@@ -103,7 +105,7 @@ async function main(): Promise<void> {
     quit: () => void quit()
   })
 
-  registerIpc({ store, popup, keys, log, quit: () => void quit() })
+  registerIpc({ store, popup, keys, loginItem: createLoginItem(log), log, quit: () => void quit() })
   store.subscribe((state) => {
     if (!popup.window.isDestroyed()) popup.window.webContents.send(IPC.state, state)
     tray.update(state, new Date())
@@ -122,7 +124,7 @@ async function main(): Promise<void> {
 
   if (smoke) console.log('usagemaxx:ready')
   if (smokeShow) popup.show(tray.bounds)
-  if (smokeView === 'settings') popup.window.webContents.send(IPC.navigate, smokeView)
+  if (smokeView && smokeView !== 'welcome') popup.window.webContents.send(IPC.navigate, smokeView)
 }
 
 if (!app.requestSingleInstanceLock()) {

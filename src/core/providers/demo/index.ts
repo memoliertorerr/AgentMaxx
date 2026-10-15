@@ -33,7 +33,9 @@ class DemoProvider implements ProviderRuntime {
   constructor(
     readonly info: ProviderInfo,
     readonly metrics: readonly MetricDescriptor[],
-    private readonly produce: (now: Date) => Omit<ProviderSnapshot, 'providerId' | 'displayName'>
+    private readonly produce: (now: Date) => Omit<ProviderSnapshot, 'providerId' | 'displayName'>,
+    /** What the welcome screen's detection reports, so it shows found and not-found providers. */
+    private readonly detected = true
   ) {}
 
   async refresh(ctx: ProviderContext): Promise<ProviderSnapshot> {
@@ -43,7 +45,7 @@ class DemoProvider implements ProviderRuntime {
   }
 
   async hasLocalCredentials(): Promise<boolean> {
-    return true
+    return this.detected
   }
 }
 
@@ -141,16 +143,21 @@ export function createDemoProviders(): ProviderRuntime[] {
       lines: [],
       warning: 'No active GLM Coding Plan'
     })),
-    new DemoProvider(info('devin', 'Devin', '#0F766E'), [metric('Weekly'), metric('Daily')], (now) => ({
-      plan: 'Core',
-      // Fetched three hours ago, so the card reads "Outdated".
-      refreshedAt: new Date(now.getTime() - 3 * HOUR).toISOString(),
-      lines: [windowed('Weekly', 64, WEEK, 4 * DAY, new Date(now.getTime() - 3 * HOUR))]
-    })),
+    new DemoProvider(
+      info('devin', 'Devin', '#0F766E'),
+      [metric('Weekly'), metric('Daily')],
+      (now) => ({
+        plan: 'Core',
+        // Fetched three hours ago, so the card reads "Outdated".
+        refreshedAt: new Date(now.getTime() - 3 * HOUR).toISOString(),
+        lines: [windowed('Weekly', 64, WEEK, 4 * DAY, new Date(now.getTime() - 3 * HOUR))]
+      }),
+      false
+    ),
     new (class extends DemoProvider {
       override async refresh(): Promise<ProviderSnapshot> {
         throw new ProviderError('notLoggedIn', 'Not logged in. Run `grok login`, then refresh.')
       }
-    })(info('grok', 'Grok', '#111111'), [metric('Weekly'), metric('Extra Usage')], () => ({ refreshedAt: '', lines: [] }))
+    })(info('grok', 'Grok', '#111111'), [metric('Weekly'), metric('Extra Usage')], () => ({ refreshedAt: '', lines: [] }), false)
   ]
 }

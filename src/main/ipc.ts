@@ -1,17 +1,27 @@
 import { ipcMain, shell } from 'electron'
 import { apiKeyProvider } from '../core/apiKeys'
 import { toErrorInfo } from '../core/errors'
-import { IPC, applySettingsChange, isSafeExternalUrl, parseSettingsChange, type ApiKeyEntry, type ChangeResult } from '../core/ipc'
+import { IPC, applySettingsChange, isSafeExternalUrl, parseSettingsChange, type ApiKeyEntry, type ChangeResult, type LaunchAtLogin } from '../core/ipc'
 import type { Logger } from '../core/runtime'
 import type { ApiKeyVault } from './apiKeys'
+import type { LoginItem } from './loginItem'
 import type { Popup } from './popup'
 import type { AppStore } from './store'
 
 // Main-process handlers for the renderer's requests. Every payload is validated here; the
 // renderer is treated as untrusted input.
 
-export function registerIpc(deps: { store: AppStore; popup: Popup; keys: ApiKeyVault; log: Logger; quit: () => void }): void {
-  const { store, popup, keys, log } = deps
+export interface IpcDependencies {
+  store: AppStore
+  popup: Popup
+  keys: ApiKeyVault
+  loginItem: LoginItem
+  log: Logger
+  quit: () => void
+}
+
+export function registerIpc(deps: IpcDependencies): void {
+  const { store, popup, keys, loginItem, log } = deps
   const fromPopup = (event: Electron.IpcMainInvokeEvent | Electron.IpcMainEvent) =>
     event.sender.id === popup.window.webContents.id
 
@@ -106,5 +116,21 @@ export function registerIpc(deps: { store: AppStore; popup: Popup; keys: ApiKeyV
       log.warn('ipc', `couldn't reveal the ${provider.id} key: ${toErrorInfo(error).message}`)
       return undefined
     }
+  })
+
+  ipcMain.handle(IPC.detectProviders, async (event): Promise<Record<string, boolean>> => {
+    if (!fromPopup(event)) return {}
+    return store.detectLocalCredentials()
+  })
+
+  ipcMain.handle(IPC.getLaunchAtLogin, (event): LaunchAtLogin => {
+    if (!fromPopup(event)) return { supported: false, enabled: false }
+    return loginItem.get()
+  })
+
+  ipcMain.handle(IPC.setLaunchAtLogin, (event, enabled: unknown): ChangeResult => {
+    if (!fromPopup(event)) return { ok: false, reason: 'Unknown sender' }
+    if (typeof enabled !== 'boolean') return { ok: false, reason: 'Invalid change' }
+    return loginItem.set(enabled)
   })
 }

@@ -76,6 +76,20 @@ Settings (`src/core/settings.ts`) hold the enabled providers, per-metric overrid
 on-demand, pinned), and display preferences. They're stored in `settings.json` and parsed
 tolerantly, so a corrupt file falls back to defaults.
 
+## First run and Settings
+
+When `enabledProviders` is still `null`, the popup shows the welcome screen. It asks main to run
+`detectLocalCredentials` (`src/core/detect.ts`), which calls every provider's local-only
+`hasLocalCredentials()` in parallel with a 10-second timeout each, then preselects what was found
+(`welcomeChoices` in `src/core/settingsView.ts`, which never preselects a provider with
+`autoEnable: false`). The answer is a `completeFirstRun` settings change.
+
+Settings is a set of tabs inside the popup (`src/renderer/components/settings/`): Providers (a
+switch per provider; a provider's metrics with Pin / On demand / Show), API Keys, General, and
+About. Every change goes through the same validated `updateSettings` IPC as the dashboard; launch
+at login has its own calls because the OS login-item list, not `settings.json`, is the source of
+truth (`src/main/loginItem.ts`, packaged builds only). See [settings.md](settings.md).
+
 ## The tray and popup
 
 - **Tray icon** (`src/main/trayIcon.ts`). Drawn in code into PNGs at 16, 24, and 32 px, for 100%,
@@ -118,6 +132,7 @@ Development runs redirect `userData` into the repo's `.cache/` (`scripts/env.sh`
 | `USAGEMAXX_SMOKE=1` | Print `usagemaxx:ready` once started; keep the popup open on blur |
 | `USAGEMAXX_SMOKE_SHOW=1` | Open the popup at startup |
 | `USAGEMAXX_THEME=light\|dark` | Force the theme |
+| `USAGEMAXX_SMOKE_VIEW=<view>` | Open a screen at startup: `welcome` (demo mode then skips its pre-enable), `settings`, `providers`, `providers:<id>`, `keys`, `general`, `about` |
 
 `scripts/smoke-launch.mjs` uses these to launch the built or packaged app under Playwright and
 screenshot the popup.

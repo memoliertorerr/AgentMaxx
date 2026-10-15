@@ -30,7 +30,10 @@ const api: UsageMaxxApi = {
   getKeyStatus: () => ipcRenderer.invoke(IPC.getKeyStatus),
   saveKey: (providerId, key) => ipcRenderer.invoke(IPC.saveKey, providerId, key),
   clearKey: (providerId) => ipcRenderer.invoke(IPC.clearKey, providerId),
-  revealKey: (providerId) => ipcRenderer.invoke(IPC.revealKey, providerId)
+  revealKey: (providerId) => ipcRenderer.invoke(IPC.revealKey, providerId),
+  detectProviders: () => ipcRenderer.invoke(IPC.detectProviders),
+  getLaunchAtLogin: () => ipcRenderer.invoke(IPC.getLaunchAtLogin),
+  setLaunchAtLogin: (enabled) => ipcRenderer.invoke(IPC.setLaunchAtLogin, enabled)
 }
 
 contextBridge.exposeInMainWorld('usagemaxx', api)

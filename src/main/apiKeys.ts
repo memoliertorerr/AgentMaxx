@@ -58,7 +58,13 @@ export class ApiKeyVault implements ApiKeyStore {
 
   /** Status for every key-based provider, in catalog order. Never decrypts. */
   async statuses(): Promise<ApiKeyEntry[]> {
-    return Promise.all(API_KEY_PROVIDERS.map(async (provider) => ({ providerId: provider.id, status: await this.status(provider.id) })))
+    const env = this.options.env()
+    return Promise.all(
+      API_KEY_PROVIDERS.map(async (provider) => {
+        const environmentVariable = provider.envNames.find((name) => env[name]?.trim())
+        return { providerId: provider.id, status: await this.status(provider.id), ...(environmentVariable ? { environmentVariable } : {}) }
+      })
+    )
   }
 
   async save(providerId: string, raw: unknown): Promise<ChangeResult> {

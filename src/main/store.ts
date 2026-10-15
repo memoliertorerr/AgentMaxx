@@ -1,5 +1,6 @@
 import path from 'node:path'
 import { SnapshotCache } from '../core/cache'
+import { detectLocalCredentials } from '../core/detect'
 import { nodeFileSystem } from '../core/fs'
 import { RefreshEngine } from '../core/refresh'
 import type { Logger, ProviderContext, ProviderRuntime } from '../core/runtime'
@@ -92,6 +93,16 @@ export class AppStore {
       clearTimeout(this.cacheTimer)
       this.cacheTimer = undefined
       await this.saveCache()
+    }
+  }
+
+  /** First-run detection: which providers have local credentials. Never touches the network. */
+  async detectLocalCredentials(): Promise<Record<string, boolean>> {
+    const controller = new AbortController()
+    try {
+      return await detectLocalCredentials(this.options.providers, this.options.makeContext({ signal: controller.signal, manual: false }))
+    } finally {
+      controller.abort()
     }
   }
 

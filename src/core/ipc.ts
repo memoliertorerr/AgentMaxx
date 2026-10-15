@@ -22,7 +22,10 @@ export const IPC = {
   getKeyStatus: 'usagemaxx:get-key-status',
   saveKey: 'usagemaxx:save-key',
   clearKey: 'usagemaxx:clear-key',
-  revealKey: 'usagemaxx:reveal-key'
+  revealKey: 'usagemaxx:reveal-key',
+  detectProviders: 'usagemaxx:detect-providers',
+  getLaunchAtLogin: 'usagemaxx:get-launch-at-login',
+  setLaunchAtLogin: 'usagemaxx:set-launch-at-login'
 } as const
 
 export type SettingsChange =
@@ -43,10 +46,23 @@ export type ChangeResult = { ok: true } | { ok: false; reason: string }
 export interface ApiKeyEntry {
   providerId: string
   status: ApiKeyStatus
+  /** The environment variable holding a key, when one does. */
+  environmentVariable?: string
 }
 
-/** Screens the main process can ask the popup to show (e.g. tray menu → Settings). */
-export type View = 'dashboard' | 'settings'
+/** The OS login-item setting. Unsupported in development runs, which must not register themselves. */
+export interface LaunchAtLogin {
+  supported: boolean
+  enabled: boolean
+}
+
+export type SettingsTab = 'providers' | 'keys' | 'general' | 'about'
+
+/**
+ * Screens the main process can ask the popup to show (tray menu → Settings, smoke screenshots):
+ * the dashboard, Settings, a Settings tab, or a provider's metrics ("providers:claude").
+ */
+export type View = 'dashboard' | 'settings' | SettingsTab | `providers:${string}`
 
 /** What the preload script exposes as `window.usagemaxx`. */
 export interface UsageMaxxApi {
@@ -65,6 +81,10 @@ export interface UsageMaxxApi {
   clearKey(providerId: string): Promise<ChangeResult>
   /** The key in use, decrypted — only when the user asks to see it. */
   revealKey(providerId: string): Promise<string | undefined>
+  /** Which providers have local credentials (first run). Local only, never the network. */
+  detectProviders(): Promise<Record<string, boolean>>
+  getLaunchAtLogin(): Promise<LaunchAtLogin>
+  setLaunchAtLogin(enabled: boolean): Promise<ChangeResult>
 }
 
 function isString(value: unknown): value is string {

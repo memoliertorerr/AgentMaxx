@@ -52,11 +52,11 @@
 | UM7 | Providers: Cursor + Copilot (incl. Windows Credential Manager reader) | Opus | auto | ✅ done |
 | UM8 | Providers: OpenRouter + Z.ai + encrypted API-key storage | Sonnet | auto | ✅ done |
 | UM9 | Providers: Grok + Devin + OpenCode Go + Ollama Cloud | Opus | auto | ✅ done |
-| UM10 | Settings view: providers, pins, API keys, launch at login, first-run welcome | Sonnet | auto | ⬜ todo |
+| UM10 | Settings view: providers, pins, API keys, launch at login, first-run welcome | Sonnet | auto | ✅ done |
 | UM11 | Windows packaging in CI: NSIS installer artifact + smoke screenshot on `windows-latest` | Sonnet | auto | ⬜ todo |
 | UM12 | README, user + developer docs, upstream/PR notes, final `CLAUDE.md` pass | Sonnet | checkpoint | ⬜ todo |
 
-**Overall status: Phases 1–2 (UM0–UM7) done; PR #1 (phase 1 → main) and the phase-2 PR (→ um/p1-foundation) are open. Phase 3 is in progress on `um/p3-providers-settings`: UM8–UM9 done, next is UM10 (settings view and first run). The sequence goes
+**Overall status: Phases 1–2 (UM0–UM7) done; PR #1 (phase 1 → main) and the phase-2 PR (→ um/p1-foundation) are open. Phase 3 (UM8–UM10) is done on `um/p3-providers-settings`; its PR goes into `um/p2-dashboard`. Next is phase 4 from UM11 (Windows packaging in CI). The sequence goes
 foundation → first runnable tray app with demo data at UM4 → dashboard and real providers →
 settings → Windows installer → docs, ending at a human checkpoint on a real Windows PC.**
 
@@ -1015,6 +1015,40 @@ This ends phase 3: push the branch, open the PR into um/p2-dashboard using the P
 template, wait for CI, then stop (unless told to run on).
 ```
 
+**Implementation notes (2026-10-15):**
+
+- **Pure logic lives in `src/core/settingsView.ts`** (routes and tabs, `welcomeChoices`,
+  `metricSettings` with the pin rule, `providerSummary`, key status text) and `src/core/detect.ts`
+  (parallel `hasLocalCredentials` probes, 10 s timeout each, failures count as not found). Both are
+  tested; the components only render them.
+- **Settings is one screen with four tabs** (Providers, API Keys, General, About), and a provider's
+  metrics open as a second level under Providers. The smoke script's `--view` takes `welcome`,
+  `settings`, `providers`, `providers:<id>`, `keys`, `general`, and `about`; each screenshot gets
+  its own name and fresh profile. Demo providers now report detection results (Devin and Grok
+  "not found"), so the welcome screenshot shows both groups.
+- **The welcome screen never preselects a provider with `autoEnable: false`** (Ollama), even if
+  its probe says yes.
+- **Launch at login works only in packaged builds.** In a development run on macOS it would
+  register Electron.app in the developer's real login items, outside the repo, so the switch is
+  disabled there with "Works in the installed app." On Windows, the packaged app uses
+  `app.setLoginItemSettings`.
+- **API key status names the environment variable in use** (`ApiKeyEntry.environmentVariable`).
+  Screenshot runs strip real key variables from the environment and give the keys view an obvious
+  fake one. No screenshot saves a key, because that would reach the macOS Keychain.
+- **The tray already had "Settings"** (UM4), and its icon and tooltip already redraw on every
+  published state, so pin changes show at once without new tray code.
+- **Fixed the popup's auto-height.** It reported the rounded `scrollHeight`, so content with a
+  fractional height (415.3 px on API Keys) overflowed by under a pixel and showed a scrollbar. It
+  now rounds up the measured height.
+- **New styles are in `src/renderer/controls.css` and `settings.css`**, because `styles.css` was
+  already at 524 lines, past the ~500-line guide. Splitting `styles.css` itself is left alone.
+- **Verified (macOS):** screenshots of the welcome screen, the provider list, Claude's and (dark)
+  Codex's metrics with the pin-limit message, API Keys, General, and About, plus the dashboard
+  regression. A throwaway Playwright run clicked through welcome → dashboard, a provider switch,
+  unpin/pin up to the limit, a metric toggle, Esc levels, and Used/Left, and checked
+  `settings.json`. **Not verified:** launch at login (packaged Windows only, UM12) and saving a key
+  through DPAPI (UM12).
+
 ---
 
 ### UM11 — Windows packaging in CI · Sonnet · auto
@@ -1105,6 +1139,12 @@ um/p3-providers-settings using the PR description template with the Windows chec
   Star for menu bar, Refresh, and Customize on right-click. UM5 has hover refresh and click
   toggles but no context menus; UM10's settings view covers hide and pin. Adding them needs an
   IPC call that opens a native `Menu` from main at the cursor.
+- **New providers in later versions** (surfaced by UM10). Upstream runs the first-run detection once
+  for each provider an update adds (missing from both `enabledProviders` and `knownProviders`),
+  turning it on only when its credentials are found and `autoEnable` allows it. v0.1 has no earlier
+  version to upgrade from, so this isn't wired yet; it belongs in `AppStore.create` with a test.
+- **Reset and Reset All Customization** (surfaced by UM10). Upstream's per-provider Reset and the
+  Reset All button (which re-runs detection) aren't built; neither is undo.
 - **OpenCode 2 credentials** (surfaced by UM9). OpenCode 2 keeps the `opencode-go` key in each
   `opencode*.db`'s `credential` table (after the `import_legacy_credentials` migration) and leaves
   OpenCode 1's `auth.json` behind, so a logout or new login made in OpenCode 2 isn't seen. Porting

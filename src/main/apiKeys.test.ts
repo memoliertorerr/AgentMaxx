@@ -62,7 +62,7 @@ describe('ApiKeyVault', () => {
   it('tracks status across environment and saved keys', async () => {
     const { vault: keys } = vault({ env: { OPENROUTER_API_KEY: 'sk-env' } })
     expect(await keys.statuses()).toEqual([
-      { providerId: 'openrouter', status: 'fromEnvironment' },
+      { providerId: 'openrouter', status: 'fromEnvironment', environmentVariable: 'OPENROUTER_API_KEY' },
       { providerId: 'zai', status: 'notSet' }
     ])
     await keys.save('openrouter', KEY)
