@@ -52,7 +52,7 @@ export function trayTooltip(state: AppState): string {
   const lines = [...byProvider.values()].map(({ name, pins }) => {
     const readings = pins.flatMap((pin) => {
       const reading = lineReading(pin.line, state)
-      return reading ? [`${pin.metric.id} ${reading}`] : []
+      return reading ? [`${pin.metric.title} ${reading}`] : []
     })
     return `${name}: ${readings.join(' · ')}`
   })

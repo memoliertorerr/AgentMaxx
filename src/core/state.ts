@@ -19,6 +19,9 @@ export interface ProviderState {
 
 export interface MetricView {
   id: string
+  /** Display name (the descriptor's title, else its id). */
+  title: string
+  valueWord?: string
   enabled: boolean
   onDemand: boolean
   pinned: boolean
@@ -81,6 +84,8 @@ export function buildAppState(input: BuildStateInput): AppState {
       const line = snapshot?.lines.find((candidate) => candidate.label === descriptor.id)
       return {
         id: descriptor.id,
+        title: descriptor.title ?? descriptor.id,
+        ...(descriptor.valueWord ? { valueWord: descriptor.valueWord } : {}),
         enabled: flags.enabled,
         onDemand: flags.onDemand,
         pinned: flags.pinned,

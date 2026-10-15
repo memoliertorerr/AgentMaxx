@@ -1,74 +1,104 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { formatValue } from '../core/format'
-import { progressHeadline, progressTrailing } from '../core/progress'
-import type { AppState } from '../core/state'
-import type { MetricLine } from '../core/types'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import type { SettingsChange, View } from '../core/ipc'
+import { Footer } from './components/Footer'
+import { BackIcon } from './components/Icons'
+import { ProviderCard } from './components/ProviderCard'
+import { useAppState } from './hooks/useAppState'
+import { useNow } from './hooks/useNow'
 
-// Placeholder dashboard (UM4): plain text, proving the IPC path end to end. UM5 replaces it.
-
-function describe(line: MetricLine, state: AppState, now: Date): string {
-  switch (line.type) {
-    case 'progress':
-      return [progressHeadline(line, state.settings.displayMode), progressTrailing(line, { now, resetMode: state.settings.resetMode })]
-        .filter(Boolean)
-        .join(' · ')
-    case 'values':
-      return line.values.map((value) => formatValue(value, 'row')).join(' · ')
-    case 'badge':
-      return line.text
-    case 'text':
-      return line.value
-  }
-}
+const TOAST_MS = 2500
 
 export function App(): React.JSX.Element {
-  const [state, setState] = useState<AppState | undefined>(undefined)
-  const root = useRef<HTMLDivElement>(null)
+  const [view, setView] = useState<View>('dashboard')
+  const [toast, setToast] = useState<string | undefined>(undefined)
+  const navigate = useCallback((next: View) => setView(next), [])
+  const state = useAppState(navigate)
+  const now = useNow()
+  const content = useRef<HTMLDivElement>(null)
+  const footer = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    let active = true
-    void window.usagemaxx.getState().then((initial) => {
-      if (active) setState(initial)
-    })
-    const unsubscribe = window.usagemaxx.onState(setState)
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') window.usagemaxx.hidePopup()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => {
-      active = false
-      unsubscribe()
-      window.removeEventListener('keydown', onKey)
-    }
+  const change = useCallback(async (settingsChange: SettingsChange) => {
+    const result = await window.usagemaxx.updateSettings(settingsChange)
+    if (!result.ok) setToast(result.reason)
   }, [])
 
-  useLayoutEffect(() => {
-    if (root.current) window.usagemaxx.resizePopup(root.current.scrollHeight)
-  })
+  useEffect(() => {
+    if (!toast) return
+    const timer = setTimeout(() => setToast(undefined), TOAST_MS)
+    return () => clearTimeout(timer)
+  }, [toast])
 
-  if (!state) return <div ref={root} />
-  const now = new Date()
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (view !== 'dashboard') setView('dashboard')
+        else window.usagemaxx.hidePopup()
+      } else if (event.key === 'F5') {
+        event.preventDefault()
+        void window.usagemaxx.refresh()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [view])
+
+  // The popup sizes itself to its content (main clamps it); past the cap, the list scrolls.
+  const reportHeight = useCallback(() => {
+    if (!content.current) return
+    const footerHeight = footer.current?.offsetHeight ?? 0
+    window.usagemaxx.resizePopup(content.current.scrollHeight + footerHeight + 2)
+  }, [])
+
+  useLayoutEffect(reportHeight)
+
+  useEffect(() => {
+    if (!content.current) return
+    const observer = new ResizeObserver(reportHeight)
+    observer.observe(content.current)
+    return () => observer.disconnect()
+  }, [reportHeight, state === undefined])
+
+  if (!state) return <div className="app" />
+
+  const enabled = state.providers.filter((provider) => provider.enabled)
+
   return (
-    <div ref={root} data-ready="true" style={{ padding: 12, fontFamily: 'system-ui', fontSize: 13 }}>
-      {state.providers
-        .filter((provider) => provider.enabled)
-        .map((provider) => (
-          <section key={provider.info.id} style={{ marginBottom: 10 }}>
-            <strong>{provider.info.displayName}</strong>
-            {provider.plan ? ` (${provider.plan})` : ''}
-            {provider.error ? ` — ${provider.error.message}` : ''}
-            {provider.stale ? ' — Outdated' : ''}
-            <ul style={{ margin: '4px 0', paddingLeft: 16 }}>
-              {provider.metrics
-                .filter((metric) => metric.enabled)
-                .map((metric) => (
-                  <li key={metric.id}>
-                    {metric.id}: {metric.line ? describe(metric.line, state, now) : 'No data'}
-                  </li>
-                ))}
-            </ul>
-          </section>
-        ))}
+    <div className="app" data-ready="true" data-view={view}>
+      <div className="scroll">
+        <div className="content" ref={content}>
+          {view === 'settings' ? (
+            <>
+              <div className="screen-header">
+                <button className="icon-button" aria-label="Back" onClick={() => setView('dashboard')}>
+                  <BackIcon />
+                </button>
+                <h1>Settings</h1>
+              </div>
+              <div className="empty">Settings arrive in a later step of the build.</div>
+            </>
+          ) : enabled.length === 0 ? (
+            <div className="empty">
+              <h2>No Providers On</h2>
+              <span>Pick the AI tools you use to see their limits here.</span>
+              <button className="primary-button" onClick={() => setView('settings')}>
+                Choose Providers
+              </button>
+            </div>
+          ) : (
+            enabled.map((provider) => (
+              <ProviderCard key={provider.info.id} provider={provider} settings={state.settings} now={now} change={change} />
+            ))
+          )}
+        </div>
+      </div>
+      <div ref={footer}>
+        <Footer state={state} now={now} onOpenSettings={() => setView('settings')} />
+      </div>
+      {toast ? (
+        <div className="toast" role="status">
+          {toast}
+        </div>
+      ) : null}
     </div>
   )
 }

@@ -6,6 +6,7 @@ import type { Theme } from '../core/settings'
 import { createContextFactory } from './context'
 import { registerIpc } from './ipc'
 import { createFileLogger } from './log'
+import { createWindowsSecretStore } from './windowsCredentials'
 import { Popup } from './popup'
 import { TrayController } from './tray'
 import { AppStore } from './store'
@@ -16,6 +17,7 @@ const demo = process.env.USAGEMAXX_DEMO === '1'
 const smoke = process.env.USAGEMAXX_SMOKE === '1'
 const smokeShow = process.env.USAGEMAXX_SMOKE_SHOW === '1'
 const forcedTheme = process.env.USAGEMAXX_THEME
+const smokeView = process.env.USAGEMAXX_SMOKE_VIEW
 
 // Development runs keep the app's data inside the repo (scripts/env.sh sets this), so nothing is
 // written to the user's real profile while building. Demo data never mixes with real data.
@@ -53,8 +55,8 @@ async function main(): Promise<void> {
     demo,
     makeContext: createContextFactory({
       log,
-      // Filled in by UM7 (Windows Credential Manager) and UM8 (saved API keys).
-      secrets: { list: async () => [] },
+      secrets: createWindowsSecretStore(log),
+      // Filled in by UM8 (saved API keys).
       apiKeys: { get: async () => undefined }
     })
   })
@@ -104,6 +106,7 @@ async function main(): Promise<void> {
 
   if (smoke) console.log('usagemaxx:ready')
   if (smokeShow) popup.show(tray.bounds)
+  if (smokeView === 'settings') popup.window.webContents.send(IPC.navigate, smokeView)
 }
 
 if (!app.requestSingleInstanceLock()) {

@@ -1,0 +1,8 @@
+{
+  "account": { "uuid": "4b6a1c3e-0000-4000-8000-000000000001" },
+  "organization": {
+    "uuid": "9f2d7a10-0000-4000-8000-000000000002",
+    "organization_type": "claude_max",
+    "rate_limit_tier": "default_claude_max_20x"
+  }
+}

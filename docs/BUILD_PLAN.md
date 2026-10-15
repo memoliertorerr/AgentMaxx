@@ -47,16 +47,16 @@
 | UM2 | Core contract: metric types, provider runtime, errors, HTTP, Windows paths, formatting | Opus | auto | ✅ done |
 | UM3 | Refresh engine, snapshot cache, settings store | Opus | auto | ✅ done |
 | UM4 | Tray + popup window + positioning + dynamic tray icon + demo provider (first runnable) | Opus | auto | ✅ done |
-| UM5 | Dashboard UI: provider cards, meters, pace colors, resets, errors, footer | Opus | auto | ⬜ todo |
-| UM6 | Providers: Claude + Codex | Opus | auto | ⬜ todo |
-| UM7 | Providers: Cursor + Copilot (incl. Windows Credential Manager reader) | Opus | auto | ⬜ todo |
+| UM5 | Dashboard UI: provider cards, meters, pace colors, resets, errors, footer | Opus | auto | ✅ done |
+| UM6 | Providers: Claude + Codex | Opus | auto | ✅ done |
+| UM7 | Providers: Cursor + Copilot (incl. Windows Credential Manager reader) | Opus | auto | ✅ done |
 | UM8 | Providers: OpenRouter + Z.ai + encrypted API-key storage | Sonnet | auto | ⬜ todo |
 | UM9 | Providers: Grok + Devin + OpenCode Go + Ollama Cloud | Opus | auto | ⬜ todo |
 | UM10 | Settings view: providers, pins, API keys, launch at login, first-run welcome | Sonnet | auto | ⬜ todo |
 | UM11 | Windows packaging in CI: NSIS installer artifact + smoke screenshot on `windows-latest` | Sonnet | auto | ⬜ todo |
 | UM12 | README, user + developer docs, upstream/PR notes, final `CLAUDE.md` pass | Sonnet | checkpoint | ⬜ todo |
 
-**Overall status: Phase 1 (UM0–UM4) done; its PR is open into main. Next is phase 2 from UM5 (dashboard UI). The sequence goes
+**Overall status: Phases 1–2 (UM0–UM7) done; PR #1 (phase 1 → main) and the phase-2 PR (→ um/p1-foundation) are open. Next is phase 3 from UM8 (OpenRouter + Z.ai). The sequence goes
 foundation → first runnable tray app with demo data at UM4 → dashboard and real providers →
 settings → Windows installer → docs, ending at a human checkpoint on a real Windows PC.**
 
@@ -687,6 +687,25 @@ Paste the verify output and `git log -1 --stat`. If it is still red after two ho
 attempts, stop and report — never commit red, never weaken a check to get green.
 ```
 
+**Implementation notes (2026-10-15):**
+
+- **View logic lives in `src/core/view.ts`** (`progressRow`, `valuesText`, `cardSections`,
+  `nextUpdateText`), with tests, so the components hold no math. That includes upstream's rule
+  that a provider keeps at least one always-visible row.
+- **Pace notes match upstream.** Amber shows "~N% spare", red shows a flame with "Limit in …"
+  or "Limit reached", and "Always Show Pacing" adds the cushion note and tick on healthy bars.
+- **A provider that has never loaded shows its error message in place of rows.** That avoids a
+  column of "No data". A provider with data shows a red error icon beside its name, with the
+  message on hover.
+- **The footer menu adds "Report an Issue…"** (opens this repo's issues) alongside Settings,
+  Refresh Now, and Quit. The Settings screen is a placeholder until UM10.
+- **The smoke script gained `--theme`, `--scroll-bottom`, and `--expand`.** Playwright emulates
+  a light color scheme by default, so `--theme dark` passes `colorScheme` through.
+- **TypeScript 6 checks side-effect imports**, so `src/renderer/assets.d.ts` declares `*.css`.
+- **Verified by screenshots (macOS):** light, dark, end of the list (dollar meter, values,
+  warning, Outdated, error card), and an expanded card (divider, on-demand rows, quick links).
+  Right-click row menus from upstream were not built (see Deferred follow-ups).
+
 ---
 
 ### UM6 — Providers: Claude + Codex · Opus · auto
@@ -724,7 +743,7 @@ usage" warning. Codex reads $CODEX_HOME/auth.json or %USERPROFILE%\.codex\auth.j
 refresh writes back only access/refresh/expiry fields, atomically (Ground Rule 8).
 
 Metric defaults (enabled, on-demand, pinned) follow upstream's DefaultLayout. Create
-docs/providers/claude.md and codex.md: what it tracks, credential sources on Windows,
+docs/providers/claude-usage.md (not claude.md — see Landmines) and codex.md: what it tracks, credential sources on Windows,
 endpoints, troubleshooting, and a "Not ported" list.
 
 Do NOT implement spend tiles, reset-credit claiming, Swap/pi accounts, or the reset-grants
@@ -735,6 +754,30 @@ everything as one commit: "um-step-6: Claude and Codex providers". Paste the ver
 `git log -1 --stat`. If it is still red after two honest fix attempts, stop and report —
 never commit red, never weaken a check to get green.
 ```
+
+**Implementation notes (2026-10-15):**
+
+- **Metric descriptors gained `title` and `valueWord`.** Upstream separates the tile title from
+  the line label (Claude "Extra Usage" reads the line "Extra usage spent") and gives an
+  unbounded dollar row a word ("$12.34 spent"). `MetricView.title` is what the UI and tooltip show.
+- **Claude, with an environment token as the only credential, shows a warning instead of
+  nothing.** Upstream shows no warning there because its spend tiles still load, but without
+  spend tiles (Later) the card would be silently empty.
+- **A Claude 429 serves the last good usage with upstream's "Updates blocked by Anthropic"
+  warning.** When there's nothing to show yet, it throws `rateLimited`, so the engine keeps the
+  disk-cached snapshot and shows the message. This replaces upstream's status-badge snapshot.
+- **Token write-back merges into the file's original JSON** (`writeMergedJson`), keeping unknown
+  fields. Upstream's Codex re-encodes its own model, which would drop unknown fields. A login the
+  tool rotated mid-refresh is never overwritten: Claude skips the write, and Codex throws
+  `tokenConflict` as upstream does.
+- **Codex's User-Agent is "UsageMaxx"** (upstream sends "OpenUsage"). Claude keeps upstream's
+  `claude-cli/…` User-Agent, because Anthropic checks the client surface.
+- **The Codex Rate Limit Resets row uses only the count in the usage body.** The per-credit
+  expiry endpoint isn't called (see the provider doc's "Not ported").
+- **The Claude doc is `docs/providers/claude-usage.md`.** Claude Code loaded `claude.md` as a
+  `CLAUDE.md` on macOS's case-insensitive filesystem. Added to Landmines and CLAUDE.md.
+- **Not verified:** live calls against real accounts. Fixtures follow upstream's test payloads.
+  This is the human check at UM12.
 
 ---
 
@@ -783,6 +826,29 @@ never commit red, never weaken a check to get green.
 This ends phase 2: push the branch, open the PR into um/p1-foundation using the PR
 description template, wait for CI, then stop (unless told to run on).
 ```
+
+**Implementation notes (2026-10-15):**
+
+- **SQLite uses `node:sqlite`, read-only.** It's available in Electron 44's Node 24.21 (verified
+  in UM1) and in plain Node 24 for tests. It sits behind `ctx.sqlite` (`SqliteReader`), with
+  `FakeSqlite` for tests and a real-file test of the reader itself. `sql.js` was not added.
+- **Cursor never writes to `state.vscdb`.** Upstream writes the refreshed access token back. Here
+  it's kept in memory, keyed by the refresh token, and reused until it nears expiry, because
+  writing into a running app's database risks lock contention and corruption.
+- **Copilot's token order on Windows:** `%LOCALAPPDATA%\github-copilot\apps.json`/`hosts.json`,
+  then `%APPDATA%\GitHub CLI\hosts.yml` (or `GH_CONFIG_DIR`), then `gh auth token`, then
+  Credential Manager `gh:github.com:<user>` (preferring the hosts.yml user, unwrapping
+  go-keyring's base64).
+- **The Credential Manager reader is PowerShell with an inline C# `CredEnumerateW`**, sent as
+  `-EncodedCommand`. The prefix goes through an environment variable, not the command line. The
+  output, which contains secrets, is parsed in `src/core/credentialManager.ts` and never logged.
+  **Not verified:** it only runs on Windows. Its parsing is unit-tested, and the PowerShell
+  itself is a UM12 human check.
+- **The Copilot billing org is remembered in memory only** (upstream uses UserDefaults), so it's
+  re-discovered once per launch.
+- **Cursor and Copilot User-Agents:** Copilot keeps its `GitHubCopilotChat/…` editor headers
+  (protocol). The GitHub billing calls send "UsageMaxx".
+- **Not verified:** live calls (fixtures follow upstream's test payloads).
 
 ---
 
@@ -979,6 +1045,10 @@ um/p3-providers-settings using the PR description template with the Windows chec
 > Things a step noticed but were out of its own scope. Strike through when handled; don't
 > delete.
 
+- **Right-click menus on rows and provider headers** (surfaced by UM5). Upstream offers Hide,
+  Star for menu bar, Refresh, and Customize on right-click. UM5 has hover refresh and click
+  toggles but no context menus; UM10's settings view covers hide and pin. Adding them needs an
+  IPC call that opens a native `Menu` from main at the cursor.
 - *(Steps add to this list as they surface out-of-scope friction.)*
 
 ---
@@ -1007,6 +1077,11 @@ Populated from real friction, not speculation:
   remotes, `gh` resolved robinebers/openusage — `gh pr create` would have opened a PR there.
   `gh repo set-default memoliertorerr/OpenUsageMaxx` is set; always pass
   `--repo memoliertorerr/OpenUsageMaxx` too.
+- **A provider doc named `claude.md` is read as a `CLAUDE.md`.** On a case-insensitive filesystem
+  (macOS default), Claude Code loaded `docs/providers/claude.md` as standing instructions for that
+  folder. The Claude provider's doc is `docs/providers/claude-usage.md` instead. Never create a
+  file named `claude.md` or `agents.md` in any letter case anywhere in the repo, except the root
+  `CLAUDE.md`.
 - **Windows 11 hides new tray icons in the overflow (^) menu** and has no API to pin them. The
   README must tell users how to show it on the taskbar.
 
