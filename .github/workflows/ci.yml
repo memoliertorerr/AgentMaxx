@@ -28,3 +28,35 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run verify
+
+  package:
+    name: package (windows-latest)
+    needs: verify
+    runs-on: windows-latest
+    env:
+      # Unsigned build: never look for a code-signing certificate.
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run dist:win
+      - name: Smoke-launch the packaged app and screenshot the popup (demo data)
+        run: node scripts/smoke-launch.mjs --exe "dist/win-unpacked/UsageMaxx.exe" --screenshot
+        env:
+          USAGEMAXX_DEMO: '1'
+      - uses: actions/upload-artifact@v7
+        with:
+          name: usagemaxx-installer
+          path: dist/*.exe
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: smoke-screenshots
+          path: test-results/*.png
+          # A failed smoke run has already failed the job; don't add a second failure.
+          if-no-files-found: warn
