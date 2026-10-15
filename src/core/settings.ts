@@ -32,6 +32,8 @@ export interface Settings {
   timeFormat: TimeFormat
   alwaysShowPacing: boolean
   theme: Theme
+  /** Never renew provider logins; an expired one shows the provider's re-login hint. */
+  readOnlyLogins: boolean
 }
 
 export function defaultSettings(): Settings {
@@ -45,7 +47,8 @@ export function defaultSettings(): Settings {
     resetMode: 'countdown',
     timeFormat: 'auto',
     alwaysShowPacing: false,
-    theme: 'system'
+    theme: 'system',
+    readOnlyLogins: false
   }
 }
 
@@ -91,7 +94,8 @@ export function normalizeSettings(raw: unknown): Settings {
     resetMode: oneOf(record.resetMode, ['countdown', 'absolute'] as const, defaults.resetMode),
     timeFormat: oneOf(record.timeFormat, ['auto', '12h', '24h'] as const, defaults.timeFormat),
     alwaysShowPacing: typeof record.alwaysShowPacing === 'boolean' ? record.alwaysShowPacing : defaults.alwaysShowPacing,
-    theme: oneOf(record.theme, ['system', 'light', 'dark'] as const, defaults.theme)
+    theme: oneOf(record.theme, ['system', 'light', 'dark'] as const, defaults.theme),
+    readOnlyLogins: typeof record.readOnlyLogins === 'boolean' ? record.readOnlyLogins : defaults.readOnlyLogins
   }
 }
 

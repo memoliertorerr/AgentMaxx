@@ -4,7 +4,7 @@ import { asBool, asObject, asString, parseJson, type JsonObject } from '../../pa
 import { makeSnapshot, type ProviderContext, type ProviderRuntime } from '../../runtime'
 import type { ProviderInfo, ProviderSnapshot } from '../../types'
 import { fingerprint, metric } from '../shared'
-import { cursorAuthError, loadCursorAuth, needsRefresh, type CursorAuth } from './auth'
+import { cursorAuthError, isExpired, loadCursorAuth, needsRefresh, type CursorAuth } from './auth'
 import { CURSOR_URLS, connectPost, refreshCursorToken, sessionGet } from './client'
 import {
   CURSOR_LABELS,
@@ -114,6 +114,11 @@ export class CursorProvider implements ProviderRuntime {
     const cached = auth.refreshToken ? this.refreshed.get(fingerprint(auth.refreshToken)) : undefined
     if (cached && !needsRefresh(cached, now)) return cached
     if (auth.accessToken && !needsRefresh(auth.accessToken, now)) return auth.accessToken
+    if (!ctx.allowTokenRefresh) {
+      // Read-only: an expiring token is tried once as is; an expired one asks for a new sign-in.
+      if (auth.accessToken && !isExpired(auth.accessToken, now)) return auth.accessToken
+      throw cursorAuthError.loginExpired()
+    }
     try {
       const token = await this.refreshAccessToken(ctx, auth)
       if (token) return token
@@ -126,6 +131,7 @@ export class CursorProvider implements ProviderRuntime {
   }
 
   private async refreshAccessToken(ctx: ProviderContext, auth: CursorAuth): Promise<string | undefined> {
+    if (!ctx.allowTokenRefresh) throw cursorAuthError.loginExpired()
     const refreshToken = auth.refreshToken
     if (!refreshToken) return undefined
     const response = await refreshCursorToken(ctx, refreshToken)

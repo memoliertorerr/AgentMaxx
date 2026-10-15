@@ -68,6 +68,7 @@ and [providers/zai.md](providers/zai.md)). For each:
 | Reset Times | Countdown / Exact Time | "Resets in 3h 25m" or the clock time; same as clicking a reset label |
 | Time Format | Auto / 12-Hour / 24-Hour | How exact times read; Auto follows Windows |
 | Always Show Pacing | on/off | Shows the projection and even-pace tick on every meter, not only near a limit |
+| Read-only Logins | on/off (default off) | Never renews provider logins or writes their credential files (Claude, Codex, Cursor, Grok). A token close to expiry is still used as is; an expired or rejected one shows that provider's re-login hint, such as "Login expired. Run `claude` to sign in again, then refresh." Off keeps upstream's behavior of renewing logins the way the official clients do |
 | Theme | System / Light / Dark | The popup's appearance |
 
 ## About

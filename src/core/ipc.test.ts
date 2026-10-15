@@ -58,6 +58,14 @@ describe('applySettingsChange', () => {
     expect(result.ok && result.settings.knownProviders).toEqual(['claude', 'codex'])
   })
 
+  it('switches Read-only Logins only with a boolean', () => {
+    expect(parseSettingsChange({ kind: 'readOnlyLogins', value: 1 })).toBeUndefined()
+    const change = parseSettingsChange({ kind: 'readOnlyLogins', value: true })
+    expect(change).toEqual({ kind: 'readOnlyLogins', value: true })
+    const result = change ? applySettingsChange(defaultSettings(), change, catalog) : undefined
+    expect(result?.ok && result.settings.readOnlyLogins).toBe(true)
+  })
+
   it('toggles a provider card open and closed', () => {
     const opened = applySettingsChange(defaultSettings(), { kind: 'toggleExpanded', providerId: 'claude' }, catalog)
     expect(opened.ok && opened.settings.expandedProviders).toEqual(['claude'])

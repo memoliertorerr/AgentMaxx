@@ -64,7 +64,11 @@ export class GrokProvider implements ProviderRuntime {
       }
       return this.probe(ctx, candidate, candidate.token)
     }
-    throw sawExpired ? grokAuthError.expired() : grokAuthError.invalidAuth()
+    throw sawExpired ? this.expired(ctx) : grokAuthError.invalidAuth()
+  }
+
+  private expired(ctx: ProviderContext): ProviderError {
+    return ctx.allowTokenRefresh ? grokAuthError.expired() : grokAuthError.loginExpired()
   }
 
   private async probe(ctx: ProviderContext, candidate: GrokCandidate, accessToken: string): Promise<ProviderSnapshot> {
@@ -75,7 +79,7 @@ export class GrokProvider implements ProviderRuntime {
         attempt: (token) => fetchCreditsConfig(ctx, token),
         refreshAccessToken: async () => {
           const refreshed = await this.refreshAccessToken(ctx, candidate)
-          if (!refreshed) throw grokAuthError.expired()
+          if (!refreshed) throw this.expired(ctx)
           return refreshed
         },
         authExpired: grokAuthError.expired
@@ -109,6 +113,8 @@ export class GrokProvider implements ProviderRuntime {
 
   /** A fresh access token, or undefined when the login can't be refreshed (the reason is logged). */
   private async refreshAccessToken(ctx: ProviderContext, candidate: GrokCandidate): Promise<string | undefined> {
+    // Read-only: never renew. An expiring token is still tried once; an expired one is skipped.
+    if (!ctx.allowTokenRefresh) return undefined
     const refreshToken = grokRefreshToken(candidate.entry)
     if (!refreshToken) return undefined
 

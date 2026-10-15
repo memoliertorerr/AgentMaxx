@@ -86,6 +86,15 @@ export function GeneralTab({ settings, change, notify }: GeneralTabProps): React
       </div>
 
       <div className="settings-group">
+        <Row
+          title="Read-only Logins"
+          hint="Never renew provider logins. When one expires, its card asks you to sign in again with the provider's own app or CLI."
+        >
+          <Switch checked={settings.readOnlyLogins} label="Read-only logins" onChange={(value) => change({ kind: 'readOnlyLogins', value })} />
+        </Row>
+      </div>
+
+      <div className="settings-group">
         <Row title="Theme">
           <Segmented
             label="Theme"

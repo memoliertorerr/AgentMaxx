@@ -34,6 +34,7 @@ export const claudeAuthText = {
   notLoggedIn: 'Not logged in. Run `claude` to authenticate.',
   sessionExpired: 'Session expired. Run `claude` to log in again.',
   tokenExpired: 'Token expired. Run `claude` to log in again.',
+  loginExpired: 'Login expired. Run `claude` to sign in again, then refresh.',
   missingProfileScope: 'Re-login for live usage. Run `claude` and sign in again to restore session and weekly limits.',
   environmentOnly:
     'CLAUDE_CODE_OAUTH_TOKEN can’t read live usage. Run `claude` and sign in to see your session and weekly limits.'
@@ -154,6 +155,10 @@ export async function loadClaudeCredentials(ctx: ProviderContext): Promise<Claud
 /** Refresh when the access token is within five minutes of expiring. */
 export function needsRefresh(oauth: ClaudeOAuth, now: Date): boolean {
   return oauth.expiresAt !== undefined && oauth.expiresAt - now.getTime() <= 5 * 60_000
+}
+
+export function isExpired(oauth: ClaudeOAuth, now: Date): boolean {
+  return oauth.expiresAt !== undefined && oauth.expiresAt <= now.getTime()
 }
 
 /**

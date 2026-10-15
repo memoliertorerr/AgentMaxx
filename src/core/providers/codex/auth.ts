@@ -27,6 +27,7 @@ export const codexAuthText = {
   tokenConflict: 'Token conflict. Run `codex` to log in again.',
   tokenRevoked: 'Token revoked. Run `codex` to log in again.',
   tokenExpired: 'Token expired. Run `codex` to log in again.',
+  loginExpired: 'Login expired. Run `codex` to sign in again, then refresh.',
   usageApiKey: 'Usage not available for API key. Sign in to Codex with your ChatGPT account.'
 } as const
 
@@ -36,6 +37,8 @@ export const codexAuthError = {
   tokenConflict: () => new ProviderError('authExpired', codexAuthText.tokenConflict),
   tokenRevoked: () => new ProviderError('authExpired', codexAuthText.tokenRevoked),
   tokenExpired: () => new ProviderError('authExpired', codexAuthText.tokenExpired),
+  /** Read-only Logins: the login isn't renewed. */
+  loginExpired: () => new ProviderError('authExpired', codexAuthText.loginExpired),
   usageApiKey: () => new ProviderError('notAvailable', codexAuthText.usageApiKey)
 }
 
@@ -100,6 +103,13 @@ export function needsRefresh(credential: Pick<CodexCredential, 'tokens' | 'lastR
   if (exp !== undefined) return exp * 1000 - now.getTime() <= REFRESH_WINDOW_MS
   const last = parseIsoDate(credential.lastRefresh)
   return last !== undefined && now.getTime() - last.getTime() > FALLBACK_REFRESH_AGE_MS
+}
+
+/** True only when the access token's JWT `exp` has passed (an unreadable expiry isn't "expired"). */
+export function isExpired(credential: Pick<CodexCredential, 'tokens'>, now: Date): boolean {
+  const token = credential.tokens.accessToken
+  const exp = token ? asNumber(jwtPayload(token)?.exp) : undefined
+  return exp !== undefined && exp * 1000 <= now.getTime()
 }
 
 function sameLogin(a: CodexTokens, b: CodexTokens): boolean {

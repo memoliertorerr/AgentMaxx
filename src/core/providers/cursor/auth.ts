@@ -18,13 +18,16 @@ export interface CursorAuth {
 export const cursorAuthText = {
   notLoggedIn: 'Not logged in. Sign in via Cursor app or run `agent login`.',
   sessionExpired: 'Session expired. Sign in via Cursor app or run `agent login`.',
-  tokenExpired: 'Token expired. Sign in via Cursor app or run `agent login`.'
+  tokenExpired: 'Token expired. Sign in via Cursor app or run `agent login`.',
+  loginExpired: 'Login expired. Open Cursor to renew it, then refresh.'
 } as const
 
 export const cursorAuthError = {
   notLoggedIn: () => new ProviderError('notLoggedIn', cursorAuthText.notLoggedIn),
   sessionExpired: () => new ProviderError('authExpired', cursorAuthText.sessionExpired),
-  tokenExpired: () => new ProviderError('authExpired', cursorAuthText.tokenExpired)
+  tokenExpired: () => new ProviderError('authExpired', cursorAuthText.tokenExpired),
+  /** Read-only Logins: the login isn't renewed. */
+  loginExpired: () => new ProviderError('authExpired', cursorAuthText.loginExpired)
 }
 
 export function cursorStateDbPath(ctx: ProviderContext): string {
@@ -57,6 +60,12 @@ export function needsRefresh(accessToken: string | undefined, now: Date): boolea
   const exp = accessToken ? asNumber(jwtPayload(accessToken)?.exp) : undefined
   if (exp === undefined) return true
   return exp * 1000 - now.getTime() <= REFRESH_BUFFER_MS
+}
+
+/** True only when the JWT `exp` has passed (an unreadable expiry isn't "expired"). */
+export function isExpired(accessToken: string, now: Date): boolean {
+  const exp = asNumber(jwtPayload(accessToken)?.exp)
+  return exp !== undefined && exp * 1000 <= now.getTime()
 }
 
 export interface CursorSession {
