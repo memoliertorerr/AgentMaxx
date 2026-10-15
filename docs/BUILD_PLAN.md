@@ -44,7 +44,7 @@
 |------|-------|-------|------|--------|
 | UM0 | Scope docs: this plan, `CLAUDE.md` standing instructions, `LICENSE` + `NOTICE` | Opus | auto | ✅ done |
 | UM1 | Scaffold Electron + electron-vite + React + TS strict; CI running verify on Ubuntu + Windows | Opus | auto | ✅ done |
-| UM2 | Core contract: metric types, provider runtime, errors, HTTP, Windows paths, formatting | Opus | auto | ⬜ todo |
+| UM2 | Core contract: metric types, provider runtime, errors, HTTP, Windows paths, formatting | Opus | auto | ✅ done |
 | UM3 | Refresh engine, snapshot cache, settings store | Opus | auto | ⬜ todo |
 | UM4 | Tray + popup window + positioning + dynamic tray icon + demo provider (first runnable) | Opus | auto | ⬜ todo |
 | UM5 | Dashboard UI: provider cards, meters, pace colors, resets, errors, footer | Opus | auto | ⬜ todo |
@@ -56,7 +56,7 @@
 | UM11 | Windows packaging in CI: NSIS installer artifact + smoke screenshot on `windows-latest` | Sonnet | auto | ⬜ todo |
 | UM12 | README, user + developer docs, upstream/PR notes, final `CLAUDE.md` pass | Sonnet | checkpoint | ⬜ todo |
 
-**Overall status: UM0–UM1 done. Next is UM2 (core contract), still in phase 1. The sequence goes
+**Overall status: UM0–UM2 done. Next is UM3 (refresh engine), still in phase 1. The sequence goes
 foundation → first runnable tray app with demo data at UM4 → dashboard and real providers →
 settings → Windows installer → docs, ending at a human checkpoint on a real Windows PC.**
 
@@ -465,6 +465,32 @@ everything as one commit: "um-step-2: core metric contract, provider runtime, pa
 formatting". Paste the verify output and `git log -1 --stat`. If it is still red after two
 honest fix attempts, stop and report — never commit red, never weaken a check to get green.
 ```
+
+**Implementation notes (2026-10-15):**
+
+- **Error categories use upstream's names** (`notLoggedIn`, `authExpired`, `authInvalid`,
+  `credentialAccess`, `network`, `decoding`, `http4xx`, `http5xx`, `rateLimited`,
+  `notAvailable`, `other`) plus `timeout`, instead of the prompt's shorter list. A missing API
+  key maps to `notLoggedIn`, as upstream does.
+- **Providers throw instead of returning an error snapshot.** Upstream encodes failures as an
+  "Error" badge snapshot; here `refresh()` throws `ProviderError` and the engine (UM3) keeps the
+  last good snapshot beside the error. So there's no error-snapshot factory; `toErrorInfo`
+  normalizes anything thrown, and `makeSnapshot` builds successes.
+- **The contract file is `src/core/runtime.ts`** (ProviderRuntime + ProviderContext), separate
+  from `types.ts`. Types and errors stay Node-free so the renderer can import them.
+- **Compact dollars keep one decimal (`$2.1K`), not two.** That follows upstream's actual
+  `MetricFormatter` code (`fractionLength(0...1)`). The `$2.06K` example in upstream's
+  dashboard doc doesn't match its code.
+- **`progress.ts` ports upstream's full meter state machine** (`WidgetData.meterState`): spent →
+  pace verdict (healthy / closeToLimit / runningOut with a run-out time) → absolute bands at
+  80% / 90% used. It also ports the "Not started" session rule (`SessionStartSignal`). This is
+  more than the prompt's ok/warn/over sketch, so the UI matches upstream exactly.
+- **Added `src/core/parse.ts`** (upstream `ProviderParse` + ISO date normalization) and
+  `tests/helpers/fakes.ts` (`MemoryFileSystem`, `FakeHttp`, `fakeContext()`) for the provider
+  steps.
+- **`gh` defaulted to `upstream`.** With the `upstream` remote present, `gh run list` listed
+  robinebers/openusage runs. Fixed with `gh repo set-default memoliertorerr/OpenUsageMaxx`;
+  commands also pass `--repo`. Added to Landmines.
 
 ---
 
@@ -934,6 +960,10 @@ Populated from real friction, not speculation:
   browsers — `playwright-core` drives Electron directly.
 - **No Windows machine here.** The only Windows execution is GitHub Actions. Tray placement,
   DPI scaling, Credential Manager reads, and real credentials are the user's checks (UM12).
+- **`gh` targets upstream by default in this checkout.** With both `origin` and `upstream`
+  remotes, `gh` resolved robinebers/openusage — `gh pr create` would have opened a PR there.
+  `gh repo set-default memoliertorerr/OpenUsageMaxx` is set; always pass
+  `--repo memoliertorerr/OpenUsageMaxx` too.
 - **Windows 11 hides new tray icons in the overflow (^) menu** and has no API to pin them. The
   README must tell users how to show it on the taskbar.
 
