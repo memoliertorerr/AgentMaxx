@@ -12,7 +12,7 @@
 > countdowns, pace colors, error and stale states; a 5-minute refresh loop with an on-disk
 > cache; live quota providers for Claude, Codex, Cursor, Copilot, OpenRouter, Z.ai, Grok,
 > Devin, OpenCode Go, and Ollama Cloud; a settings view (providers on/off, pinned metrics, API
-> keys, launch at login); CI that tests on Windows, builds the NSIS installer, and takes a
+> keys, launch at login, read-only logins); CI that tests on Windows, builds the NSIS installer, and takes a
 > smoke screenshot on a real Windows runner; README and docs.
 >
 > **Explicitly NOT in scope** (designed, deferred — see **Later**): local spend tiles (Today /
@@ -53,10 +53,11 @@
 | UM8 | Providers: OpenRouter + Z.ai + encrypted API-key storage | Sonnet | auto | ✅ done |
 | UM9 | Providers: Grok + Devin + OpenCode Go + Ollama Cloud | Opus | auto | ✅ done |
 | UM10 | Settings view: providers, pins, API keys, launch at login, first-run welcome | Sonnet | auto | ✅ done |
+| UM10.1 | Read-only logins: never refresh tokens; show the re-login hint | Opus | auto | ⬜ todo |
 | UM11 | Windows packaging in CI: NSIS installer artifact + smoke screenshot on `windows-latest` | Sonnet | auto | ⬜ todo |
 | UM12 | README, user + developer docs, upstream/PR notes, final `CLAUDE.md` pass | Sonnet | checkpoint | ⬜ todo |
 
-**Overall status: Phases 1–2 (UM0–UM7) done; PR #1 (phase 1 → main) and the phase-2 PR (→ um/p1-foundation) are open. Phase 3 (UM8–UM10) is done on `um/p3-providers-settings`; its PR goes into `um/p2-dashboard`. Next is phase 4 from UM11 (Windows packaging in CI). The sequence goes
+**Overall status: Phases 1–2 (UM0–UM7) done; PR #1 (phase 1 → main) and the phase-2 PR (→ um/p1-foundation) are open. Phase 3 (UM8–UM10.1) is on `um/p3-providers-settings`, PR into `um/p2-dashboard`: UM8–UM10 done, UM10.1 (read-only logins, added mid-plan) next. Phase 4 (`um/p4-ship`) has UM11 done and picks up UM10.1 by merging phase 3 before UM12. The sequence goes
 foundation → first runnable tray app with demo data at UM4 → dashboard and real providers →
 settings → Windows installer → docs, ending at a human checkpoint on a real Windows PC.**
 
@@ -72,8 +73,9 @@ mechanical (CI packaging, docs) and fits Sonnet.
    shapes (`src/core/types.ts`), the refresh rules, and the demo screenshot.
 2. **UM5 → UM7** · Opus · branch `um/p2-dashboard` → PR into `um/p1-foundation` — review the
    dashboard screenshots and the Claude/Codex/Cursor/Copilot mapper fixtures.
-3. **UM8 → UM10** · Opus · branch `um/p3-providers-settings` → PR into `um/p2-dashboard` —
-   review API-key handling (DPAPI, never plaintext) and the settings screenshots.
+3. **UM8 → UM10.1** · Opus · branch `um/p3-providers-settings` → PR into `um/p2-dashboard` —
+   review API-key handling (DPAPI, never plaintext), the settings screenshots, and the
+   read-only logins switch (UM10.1, added mid-plan).
 4. **UM11 → UM12** · Sonnet · branch `um/p4-ship` → PR into `um/p3-providers-settings` —
    review the Windows CI screenshot, the installer artifact, and the README. Ends in the human
    Windows checks.
@@ -1051,6 +1053,50 @@ template, wait for CI, then stop (unless told to run on).
 
 ---
 
+### UM10.1 — Read-only logins · Opus · auto
+
+> **Added mid-plan 2026-10-15** — requested by the user after a terms-of-service review; reduces how much the app acts as the official clients.
+
+**Verify:** `npm run verify` green with tests showing, for Claude, Codex, Cursor, and Grok with
+`allowTokenRefresh: false`: an expired token throws `authExpired` with that provider's re-login
+hint, sends no request to its refresh URL, and writes no file; an expiring-but-unexpired token is
+tried once without refreshing; a 401/403 throws the hint without refreshing. The existing
+refresh-on tests pass unchanged. Settings round-trip `readOnlyLogins` (default false, tolerant
+parsing); a demo screenshot of Settings → General shows the "Read-only Logins" switch.
+**Commit:** `um-step-10.1: read-only logins setting`
+
+```text
+Add a "Read-only Logins" setting: when it's on, UsageMaxx never renews a provider's login and
+never writes a credential file; an expired login shows that provider's re-login hint instead.
+
+- src/core/settings.ts: `readOnlyLogins: boolean`, default false (upstream behavior), parsed
+  tolerantly like the other booleans. src/core/ipc.ts: a `readOnlyLogins` settings change,
+  validated in parseSettingsChange and applied in applySettingsChange.
+- src/core/runtime.ts: ProviderContext gains `allowTokenRefresh: boolean`. src/main/context.ts
+  sets it from the setting (false in demo mode); tests/helpers/fakes.ts defaults it to true.
+- Claude, Codex, Cursor, and Grok check it. With refresh off they never call the refresh
+  endpoint and never write a credential file. An expired token, or a 401/403, throws
+  ProviderError('authExpired', <hint>): Claude "Login expired. Run `claude` to sign in again,
+  then refresh."; Codex "Login expired. Run `codex` to sign in again, then refresh."; Cursor
+  "Login expired. Open Cursor to renew it, then refresh."; Grok "Login expired. Run `grok login`
+  to sign in again, then refresh." A token that is expiring but not yet expired is still tried
+  once without refreshing.
+- Settings → General: a "Read-only Logins" switch described as "Never renew provider logins.
+  When one expires, its card asks you to sign in again with the provider's own app or CLI."
+- Tests: per affected provider with refresh off, no request to its refresh URL, no fs writes,
+  and the hint message. Keep the refresh-on tests unchanged.
+
+Update docs/settings.md, docs/providers/{claude-usage,codex,cursor,grok}.md ("Under the hood"
+and troubleshooting), and CLAUDE.md → Conventions.
+
+Run npm run verify and a demo screenshot of Settings → General. If green, flip UM10.1 to ✅ in
+docs/BUILD_PLAN.md and commit everything as one commit: "um-step-10.1: read-only logins
+setting". Paste the verify output and `git log -1 --stat`. If it is still red after two honest
+fix attempts, stop and report — never commit red, never weaken a check to get green.
+```
+
+---
+
 ### UM11 — Windows packaging in CI · Sonnet · auto
 
 **Verify:** `npm run verify` green locally; on the pushed branch, the `package (windows-latest)`
@@ -1092,8 +1138,10 @@ before it, each with a um-step-11 prefix and a description). Paste the verify ou
 screenshot from the Windows CI run (`docs/assets/screenshot.png`, demo data), Install
 (installer from the CI artifact or a release; SmartScreen "More info → Run anyway"; Windows 11
 "show the icon on the taskbar" steps), Supported providers with Windows credential sources,
-Privacy, Building from source, Relationship to OpenUsage, License. `docs/README.md` indexes
-every doc; `docs/upstream.md` explains the PR situation and holds a draft issue for the user.
+Privacy, Building from source, Relationship to OpenUsage, Risks and terms (unofficial,
+undocumented endpoints per provider, the provider terms that may restrict this with linked
+sources, what limits the risk, Read-only Logins, "use at your own risk; not legal advice"),
+License. `docs/README.md` indexes every doc; `docs/upstream.md` explains the PR situation and holds a draft issue for the user.
 **Human check:** install the CI artifact on a Windows PC and walk the checklist in the PR.
 **Commit:** `um-step-12: README, user docs, and upstream notes`
 
@@ -1109,7 +1157,26 @@ Write the user-facing docs.
   from on Windows), Privacy (credentials stay local, only provider APIs are called, no
   telemetry, API keys encrypted with Windows DPAPI), Building from source (npm ci, npm run
   dev, npm run dist:win), Relationship to OpenUsage (unofficial port, MIT credit, trademark
-  note, link upstream; other Windows ports exist — Pane, CrossUsage), License.
+  note, link upstream; other Windows ports exist — Pane, CrossUsage), Risks and terms (below),
+  License.
+- README.md "Risks and terms" (added mid-plan 2026-10-15 at the user's request), plain and
+  factual: UsageMaxx is unofficial and not affiliated with OpenUsage or any provider. Claude,
+  Codex, Cursor, Copilot, Z.ai, Grok, and Devin are read through undocumented internal endpoints
+  with the login the provider's own CLI or app stored; UsageMaxx identifies itself as those
+  clients do and, unless Read-only Logins is on, renews expired logins with their client IDs.
+  OpenRouter, Ollama Cloud, and OpenCode Go use documented APIs. Provider terms may restrict
+  this: Anthropic's Claude Code legal page said in February 2026 that subscription OAuth tokens
+  are only for Claude Code and claude.ai; Cursor's terms forbid reverse engineering and its staff
+  have said private endpoints are off-limits; no provider has approved this app, and the
+  endpoints can change or be blocked at any time. What limits the risk: it only reads usage
+  (never sends AI requests on your subscription), refreshes each provider about once every 5
+  minutes, backs off when rate-limited, sends tokens only to the provider's own servers, and never
+  writes Cursor's database; Read-only Logins removes token renewal entirely. Use at your own risk;
+  this isn't legal advice. Link the sources:
+  https://www.theregister.com/software/2026/02/20/anthropic-clarifies-ban-on-third-party-tool-access-to-claude/5014546 ,
+  https://forum.cursor.com/t/does-using-oh-my-pi-s-cursor-provider-or-an-openai-compatible-proxy-to-the-same-endpoints-violate-cursor-s-tos/167778 ,
+  and GitHub's Acceptable Use Policies
+  (https://docs.github.com/en/site-policy/acceptable-use-policies/github-acceptable-use-policies).
 - docs/README.md: index of every doc. docs/upstream.md: why this isn't an upstream PR
   (maintainer replies on #374 and #1064, closed Windows PRs, issue-first policy, the rule
   against AI-generated commit messages), what a contribution could realistically be (a
