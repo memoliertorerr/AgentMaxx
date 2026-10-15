@@ -42,30 +42,103 @@ Version 0.1: unofficial, unsigned, and new.
   Logins, and uninstalling. If you use any of them, reports are welcome in
   [Issues](https://github.com/memoliertorerr/OpenUsageMaxx/issues).
 
-## Install
+## Installation guide
 
-There are no releases yet. The installer is built by CI on every push:
+UsageMaxx runs on Windows 10 and 11, on Intel/AMD PCs and on Windows on ARM (Snapdragon laptops,
+or Windows 11 in Parallels on an Apple Silicon Mac). One installer covers both and installs the
+native build for your PC.
 
-1. Open the repository's **Actions** tab, then the latest successful **CI** run on `main`.
-2. Under **Artifacts**, download **usagemaxx-installer** (GitHub asks you to sign in) and unzip
-   it to get `UsageMaxx-Setup-0.1.0.exe`.
-3. Run it. The installer isn't code-signed, so Windows SmartScreen shows "Windows protected your
-   PC": choose **More info → Run anyway**.
-4. The installer is per-user (no admin rights needed), lets you pick the folder, and adds a
-   Start-menu shortcut.
+### 1. Sign in to your AI tools first
 
-**One installer for every Windows PC.** It holds both an x64 build (Intel and AMD PCs) and an
-arm64 build, and installs the one that matches: Windows on ARM laptops such as Snapdragon
-machines, and Windows 11 on ARM in Parallels on an Apple Silicon Mac, get the native ARM build
-instead of running under emulation.
+UsageMaxx shows usage from the logins your tools already saved on this PC; it never asks for a
+password. Sign in **before** the first launch, so the welcome screen finds them. You only need the
+tools you actually use:
 
-**Show the icon on the taskbar.** Windows 11 hides new tray icons in the overflow (**^**) menu.
-Either drag the UsageMaxx icon from the overflow onto the taskbar, or go to **Settings →
-Personalization → Taskbar → Other system tray icons** and turn **UsageMaxx** on. (Windows 10:
-**Settings → Personalization → Taskbar → Select which icons appear on the taskbar**.)
+| Tool | How to sign in on Windows |
+|---|---|
+| Claude Code | In PowerShell: `irm https://claude.ai/install.ps1 \| iex`, then open a new window, run `claude`, and sign in in the browser |
+| Codex | `winget install OpenAI.Codex`, then `codex login` and sign in with your ChatGPT account |
+| Cursor | Open Cursor and sign in |
+| GitHub Copilot | Sign in to Copilot in your editor, or `winget install GitHub.cli` then `gh auth login` |
+| Devin, Grok, OpenCode Go | Sign in with their CLIs: `devin auth login`, `grok login`, or log into OpenCode Go in OpenCode |
+| Ollama Cloud | Install Ollama, run `ollama signin`, then turn Ollama on in Settings → Providers (it never turns itself on) |
+| OpenRouter, Z.ai | Nothing to install: add your API key later in Settings → API Keys |
 
-**Uninstall** from **Settings → Apps → Installed apps → UsageMaxx**. Settings, the cache, saved
-API keys, and logs stay in `%APPDATA%\UsageMaxx` until you delete that folder.
+If a tool's own installer says its folder isn't on your PATH (Claude Code: `claude` "is not
+recognized"), run it by its full path once to sign in:
+
+```powershell
+& "$env:USERPROFILE\.local\bin\claude.exe"
+```
+
+If `winget` fails with "The file cannot be accessed by the system", Windows hasn't finished setting
+it up for your account yet. Register it, then open a new PowerShell window:
+
+```powershell
+Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe
+```
+
+### 2. Download the installer
+
+There are no releases yet; every push builds the installer in CI.
+
+1. Open this repository's **Actions** tab, choose the **CI** workflow, and open the latest
+   successful run on `main`.
+2. Under **Artifacts**, download **usagemaxx-installer** (about 300 MB; GitHub asks you to sign
+   in, and artifacts expire after 90 days).
+3. Unzip it to get `UsageMaxx-Setup-0.1.0.exe`. Put it in a folder on your PC's own disk, such as
+   `C:\Install`.
+
+With the GitHub CLI, the same download is one command (`<run-id>` is the run's number in its URL):
+
+```powershell
+gh run download <run-id> --repo memoliertorerr/OpenUsageMaxx --name usagemaxx-installer
+```
+
+### 3. Run the installer
+
+1. Double-click `UsageMaxx-Setup-0.1.0.exe`. It isn't code-signed yet, so Windows SmartScreen
+   shows "Windows protected your PC": choose **More info → Run anyway**.
+2. If **Smart App Control** blocks it instead, with no "Run anyway", Windows only allows signed
+   apps on this PC. Turning Smart App Control off is a Windows security setting (Windows Security →
+   App & browser control), so it's your call.
+3. The installer is per-user (no admin rights), lets you choose the folder (default
+   `%LOCALAPPDATA%\Programs\UsageMaxx`), adds a Start-menu shortcut, and starts UsageMaxx when it
+   finishes.
+
+### 4. First launch
+
+1. A welcome screen lists the tools signed in on this PC, already ticked. Choose **Continue**.
+   (**Choose Later** starts with nothing on; add providers in Settings → Providers.)
+2. **Show the icon on the taskbar.** Windows 11 hides new tray icons in the overflow (**^**) menu.
+   Drag the UsageMaxx icon from there onto the taskbar, or turn it on in **Settings →
+   Personalization → Taskbar → Other system tray icons**. (Windows 10: **Settings →
+   Personalization → Taskbar → Select which icons appear on the taskbar**.)
+3. Left-click the icon for the dashboard; right-click for Refresh Now, Settings, and Quit.
+   **Launch at Login** is in Settings → General.
+
+**On Windows on ARM**, you can confirm it runs natively: in Task Manager → **Details**, right-click
+a column header → **Select columns** → **Architecture**. UsageMaxx shows **ARM64**.
+
+**In Parallels on a Mac**, use Window or Full Screen mode, not Coherence: in Coherence, Parallels
+moves Windows' tray icons into the Mac menu bar. Run the installer from a folder on the Windows
+disk, not a shared Mac folder (`\\Mac\...`).
+
+### Updating and uninstalling
+
+- **Update** by running a newer installer over the old one. Your settings, saved API keys, and cache
+  in `%APPDATA%\UsageMaxx` are kept. (There's no auto-update.)
+- **Uninstall** from **Settings → Apps → Installed apps → UsageMaxx**. The data folder
+  `%APPDATA%\UsageMaxx` stays until you delete it.
+
+### If something's off
+
+- **A card says "Not logged in"**: sign in with that tool (step 1), then press F5 in the popup.
+- **No icon after installing**: look in the overflow (**^**) menu, or start UsageMaxx from the
+  Start menu.
+- **"Missing Shortcut" right after installing, and no `UsageMaxx.exe` in the install folder**: an
+  early ARM build had this bug (fixed on 2026-10-16). Uninstall, then install a current build.
+- Each provider's page under [docs/providers](docs/README.md) has its own troubleshooting.
 
 ## Supported providers
 

@@ -61,7 +61,9 @@
 **Overall status: v0.1 is complete. All steps UM0–UM12 (with UM10.1 and UM11.1, added mid-plan)
 are done, the user's Windows check passed on 2026-10-16, and PRs #1–#4 were merged into `main` that
 day, in order, with merge commits, at the user's request. The phase branches are kept. New work
-starts from `main` (see Deferred follow-ups and Later).**
+starts from `main` (see Deferred follow-ups and Later). `CLAUDE.md`, which the steps below keep
+updating, became a local, gitignored file on 2026-10-16 at the user's request; it's no longer in
+the repository.**
 
 **Model note:** phases 1 and 2 need the stronger model: UM2 (contract) and UM3 (refresh
 engine) shape every later step, UM4 is the likeliest spike (tray rendering and popup
@@ -1433,6 +1435,8 @@ Populated from real friction, not speculation:
   read it and doesn't report the failure. Keep `nsis.useZip: true`, and keep CI's
   `scripts/install-check.ps1`, which installs the real installer on x64 and ARM. Launching the
   unpacked build alone can't catch this.
+- **`CLAUDE.md` is local only** (since 2026-10-16). It's gitignored and not in the repository, so
+  a fresh clone has no agent instructions. Don't commit it or link to it from tracked docs.
 - **A command-line target overrides electron-builder.yml's arch list** (`--win nsis` builds only the
   host architecture). `npm run dist:win` passes `--x64 --arm64` explicitly.
 

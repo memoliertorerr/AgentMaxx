@@ -7,3 +7,6 @@ dist/
 coverage/
 test-results/
 *.log
+
+# Local agent instructions: kept on this machine, never committed (2026-10-16).
+CLAUDE.md

@@ -27,7 +27,6 @@ The [README](../README.md) also covers installing, privacy, and **Risks and term
 | [architecture.md](architecture.md) | Process model, provider pipeline, API keys, refreshing, state, first run and Settings, tray and popup, data locations, dev hooks, build and packaging |
 | [BUILD_PLAN.md](BUILD_PLAN.md) | The step-by-step build plan, progress tracker, implementation notes, deferred follow-ups, landmines, and what's planned for later |
 | [upstream.md](upstream.md) | Why this isn't an upstream PR, how to contribute provider fixes back, and a draft issue |
-| [../CLAUDE.md](../CLAUDE.md) | Standing instructions for coding agents: rules, commands, file map, conventions |
 
 ## Assets
 
