@@ -1,0 +1,11 @@
+{
+  // For editors only. `npm run typecheck` checks the node and web halves separately
+  // (tsconfig.node.json, tsconfig.web.json) so renderer code can't reach Node APIs.
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "types": ["node"]
+  },
+  "include": ["src/**/*", "tests/**/*", "scripts/**/*", "*.config.mts"]
+}

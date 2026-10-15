@@ -43,7 +43,7 @@
 | Step | Scope | Model | Gate | Status |
 |------|-------|-------|------|--------|
 | UM0 | Scope docs: this plan, `CLAUDE.md` standing instructions, `LICENSE` + `NOTICE` | Opus | auto | ✅ done |
-| UM1 | Scaffold Electron + electron-vite + React + TS strict; CI running verify on Ubuntu + Windows | Opus | auto | ⬜ todo |
+| UM1 | Scaffold Electron + electron-vite + React + TS strict; CI running verify on Ubuntu + Windows | Opus | auto | ✅ done |
 | UM2 | Core contract: metric types, provider runtime, errors, HTTP, Windows paths, formatting | Opus | auto | ⬜ todo |
 | UM3 | Refresh engine, snapshot cache, settings store | Opus | auto | ⬜ todo |
 | UM4 | Tray + popup window + positioning + dynamic tray icon + demo provider (first runnable) | Opus | auto | ⬜ todo |
@@ -56,7 +56,7 @@
 | UM11 | Windows packaging in CI: NSIS installer artifact + smoke screenshot on `windows-latest` | Sonnet | auto | ⬜ todo |
 | UM12 | README, user + developer docs, upstream/PR notes, final `CLAUDE.md` pass | Sonnet | checkpoint | ⬜ todo |
 
-**Overall status: UM0 done. Next is phase 1 from UM1 (scaffold + CI). The sequence goes
+**Overall status: UM0–UM1 done. Next is UM2 (core contract), still in phase 1. The sequence goes
 foundation → first runnable tray app with demo data at UM4 → dashboard and real providers →
 settings → Windows installer → docs, ending at a human checkpoint on a real Windows PC.**
 
@@ -378,6 +378,27 @@ everything as one commit: "um-step-1: scaffold Electron + TypeScript tray app wi
 the verify output and `git log -1 --stat`. If it is still red after two honest fix attempts,
 stop and report — never commit red, never weaken a check to get green.
 ```
+
+**Implementation notes (2026-10-15):**
+
+- **Electron 44 has no postinstall.** It downloads its binary on first use, so `npm install`
+  alone leaves no `dist/`. `node node_modules/electron/install.js` with `scripts/env.sh`
+  sourced fetches it into `.cache/electron`. In CI, the first `electron` invocation downloads it.
+- **Electron 44.7.2 bundles Node 24.21.0, and `node:sqlite` loads under it.** That settles the
+  UM7 SQLite decision in favor of `node:sqlite`; `sql.js` won't be needed.
+- **TypeScript is pinned to 6.0.3, not 7.x.** 7.x is the new native compiler; 6.x is the safer
+  gate for a strict typecheck.
+- **React is a devDependency, not a dependency.** Vite bundles it into the renderer, so the
+  packaged app ships no `node_modules`.
+- **Configs are `.mts`, and `package.json` stays CommonJS.** Vite warned about ESM syntax in a
+  `.ts` config loaded as CommonJS. Adding `"type": "module"` would make preload ESM, which
+  sandboxed preloads can't load.
+- **The PNG encoder (`src/core/png.ts`) landed here instead of UM4**, because the placeholder
+  tray icon needed one. It has real tests, which replace the trivial `tests/smoke.test.ts`.
+- **CI uses `actions/checkout@v7` and `actions/setup-node@v7`** (current majors), on Node 24.
+- **The dev app writes user data under `.cache/user-data`** via `USAGEMAXX_USER_DATA`. macOS
+  itself may still record standard app state for Electron.app under `~/Library`; that's outside
+  the app's control.
 
 ---
 

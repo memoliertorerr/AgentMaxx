@@ -1,0 +1,27 @@
+appId: dev.usagemaxx.app
+productName: UsageMaxx
+copyright: Copyright © 2026 Mehmet Ali Ertorer
+directories:
+  output: dist
+  buildResources: build
+files:
+  - out/**
+  - package.json
+  - "!**/*.map"
+asar: true
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  artifactName: UsageMaxx-Setup-${version}.${ext}
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: false
+  createStartMenuShortcut: true
+  shortcutName: UsageMaxx
+  uninstallDisplayName: UsageMaxx
+mac:
+  target: dir
