@@ -49,18 +49,21 @@ jobs:
           name: usagemaxx-installer
           path: dist/*.exe
           if-no-files-found: error
-      - name: Show how each architecture's app package is compressed
+      - name: Show how the installer packs each architecture
         run: |
-          foreach ($package in Get-ChildItem dist\*.nsis.*) {
+          $sevenZip = 'C:\Program Files\7-Zip\7z.exe'
+          $out = Join-Path $env:RUNNER_TEMP 'installer-contents'
+          & $sevenZip x (Get-ChildItem dist\UsageMaxx-Setup-*.exe).FullName "-o$out" 'app-*' -r -y | Out-Null
+          foreach ($package in Get-ChildItem $out -Recurse -Filter 'app-*') {
             Write-Host "== $($package.Name)"
-            & "C:\Program Files\7-Zip\7z.exe" l -slt $package.FullName | Select-String '^Method = ' | Sort-Object -Unique | Out-String | Write-Host
+            & $sevenZip l -slt $package.FullName | Select-String '^Method = ' | Sort-Object -Unique | Out-String | Write-Host
           }
       - name: Smoke-launch the packaged app and screenshot the popup (demo data)
         run: node scripts/smoke-launch.mjs --exe "dist/win-unpacked/UsageMaxx.exe" --screenshot
         env:
           USAGEMAXX_DEMO: '1'
       - name: Install with the real installer and check the x64 app is complete
-        run: pwsh scripts/install-check.ps1 -Installer (Get-ChildItem dist\UsageMaxx-Setup-*.exe).FullName -Arch x64
+        run: pwsh scripts/install-check.ps1 -Installer (Get-ChildItem dist\UsageMaxx-Setup-*.exe).FullName -Expected dist\win-unpacked -Arch x64
       - name: Smoke-launch the installed app (demo data)
         run: node scripts/smoke-launch.mjs --exe "$env:LOCALAPPDATA\Programs\UsageMaxx\UsageMaxx.exe" --screenshot --name popup-installed-x64
         env:
@@ -99,7 +102,7 @@ jobs:
           name: usagemaxx-installer
           path: installer
       - name: Install with the real installer and check the ARM64 app is complete
-        run: pwsh scripts/install-check.ps1 -Installer (Get-ChildItem installer\UsageMaxx-Setup-*.exe).FullName -Arch ARM64
+        run: pwsh scripts/install-check.ps1 -Installer (Get-ChildItem installer\UsageMaxx-Setup-*.exe).FullName -Expected dist\win-arm64-unpacked -Arch ARM64
       - name: Smoke-launch the installed app natively (demo data)
         run: node scripts/smoke-launch.mjs --exe "$env:LOCALAPPDATA\Programs\UsageMaxx\UsageMaxx.exe" --screenshot --name popup-installed-arm64
         env:
