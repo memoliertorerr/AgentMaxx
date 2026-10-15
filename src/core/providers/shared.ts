@@ -127,3 +127,12 @@ export async function hasApiKey(ctx: ProviderContext, providerId: string): Promi
   const provider = keyProvider(providerId)
   return (await ctx.apiKeys.has(providerId)) || keyFromEnvironment(ctx.env, provider.envNames) !== undefined
 }
+
+/**
+ * An `application/x-www-form-urlencoded` body that escapes everything outside RFC 3986's unreserved
+ * set (spaces as %20), matching upstream's `urlFormEncoded`.
+ */
+export function formEncode(fields: ReadonlyArray<readonly [string, string]>): string {
+  const escape = (value: string) => encodeURIComponent(value).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`)
+  return fields.map(([name, value]) => `${escape(name)}=${escape(value)}`).join('&')
+}

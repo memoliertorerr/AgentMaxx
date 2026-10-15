@@ -51,12 +51,12 @@
 | UM6 | Providers: Claude + Codex | Opus | auto | ✅ done |
 | UM7 | Providers: Cursor + Copilot (incl. Windows Credential Manager reader) | Opus | auto | ✅ done |
 | UM8 | Providers: OpenRouter + Z.ai + encrypted API-key storage | Sonnet | auto | ✅ done |
-| UM9 | Providers: Grok + Devin + OpenCode Go + Ollama Cloud | Opus | auto | ⬜ todo |
+| UM9 | Providers: Grok + Devin + OpenCode Go + Ollama Cloud | Opus | auto | ✅ done |
 | UM10 | Settings view: providers, pins, API keys, launch at login, first-run welcome | Sonnet | auto | ⬜ todo |
 | UM11 | Windows packaging in CI: NSIS installer artifact + smoke screenshot on `windows-latest` | Sonnet | auto | ⬜ todo |
 | UM12 | README, user + developer docs, upstream/PR notes, final `CLAUDE.md` pass | Sonnet | checkpoint | ⬜ todo |
 
-**Overall status: Phases 1–2 (UM0–UM7) done; PR #1 (phase 1 → main) and the phase-2 PR (→ um/p1-foundation) are open. Phase 3 is in progress on `um/p3-providers-settings`: UM8 done, next is UM9 (Grok, Devin, OpenCode Go, Ollama). The sequence goes
+**Overall status: Phases 1–2 (UM0–UM7) done; PR #1 (phase 1 → main) and the phase-2 PR (→ um/p1-foundation) are open. Phase 3 is in progress on `um/p3-providers-settings`: UM8–UM9 done, next is UM10 (settings view and first run). The sequence goes
 foundation → first runnable tray app with demo data at UM4 → dashboard and real providers →
 settings → Windows installer → docs, ending at a human checkpoint on a real Windows PC.**
 
@@ -948,6 +948,35 @@ the verify output and `git log -1 --stat`. If it is still red after two honest f
 stop and report — never commit red, never weaken a check to get green.
 ```
 
+**Implementation notes (2026-10-15):**
+
+- **Registry order** is Claude, Codex, Cursor, then alphabetical: Copilot, Devin, Grok, Ollama,
+  OpenCode, OpenRouter, Z.ai. Metric defaults follow upstream's `DefaultLayout` (Ollama Monthly is
+  the only new default pin; Grok Extra Usage, Devin Extra Balance, and Ollama Purchased Credits sit
+  behind the caret).
+- **Grok** writes a rotated token back like Claude does: only that account's token fields, merged
+  into the file as it is now, and never over a login the CLI changed meanwhile. A rotation that
+  can't be written stays in memory, keyed by the login on disk, so the next refresh doesn't spend
+  a refresh token the server already rotated. The team-account warning drops upstream's mention of
+  spend tiles (Later). The refresh body is form-encoded like upstream (`%20`, RFC 3986), via a new
+  `formEncode` helper.
+- **Devin** checks `%APPDATA%\devin`, then `%USERPROFILE%\.local\share\devin`, then
+  `%LOCALAPPDATA%\devin` (`credentials.toml`). Pane's source reads the `%APPDATA%` path first and
+  `%LOCALAPPDATA%` too, so both are in. The Devin app's `state.vscdb` source is ported at
+  `%APPDATA%\Devin\User\globalStorage\state.vscdb`, which is unconfirmed. Unlike upstream, a
+  network failure on every source surfaces as a connection error instead of "quota data
+  unavailable".
+- **OpenCode reads only OpenCode 1's `auth.json`**, as the prompt names. OpenCode 2's credential
+  tables in `opencode*.db` need a generic SQLite query and a directory listing that the context
+  doesn't have yet (see Deferred follow-ups). Without spend tiles, a key with no Go subscription is
+  an error rather than an empty card.
+- **Ollama** parses `openssh-key-v1` itself, wraps the seed in a PKCS#8 DER, and signs with
+  `crypto.sign(null, …)`. Tests build keys the way `ssh-keygen` does and verify signatures against
+  the public half. `hasLocalCredentials` is always false and `autoEnable` is false; UM10's first-run
+  probe must honor both.
+- **Not verified:** live calls (fixtures follow upstream's tests and captured payloads), and the
+  Windows paths beyond Pane's Devin path. These are UM12 human checks.
+
 ---
 
 ### UM10 — Settings view + first run · Sonnet · auto
@@ -1076,6 +1105,11 @@ um/p3-providers-settings using the PR description template with the Windows chec
   Star for menu bar, Refresh, and Customize on right-click. UM5 has hover refresh and click
   toggles but no context menus; UM10's settings view covers hide and pin. Adding them needs an
   IPC call that opens a native `Menu` from main at the cursor.
+- **OpenCode 2 credentials** (surfaced by UM9). OpenCode 2 keeps the `opencode-go` key in each
+  `opencode*.db`'s `credential` table (after the `import_legacy_credentials` migration) and leaves
+  OpenCode 1's `auth.json` behind, so a logout or new login made in OpenCode 2 isn't seen. Porting
+  upstream's `OpenCodeAuthStore.goAPIKey` needs a generic read-only query on `SqliteReader` and a
+  directory listing on `FileSystem` (to find every `opencode*.db`).
 - *(Steps add to this list as they surface out-of-scope friction.)*
 
 ---
