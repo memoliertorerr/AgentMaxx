@@ -55,10 +55,10 @@
 | UM10 | Settings view: providers, pins, API keys, launch at login, first-run welcome | Sonnet | auto | ✅ done |
 | UM10.1 | Read-only logins: never refresh tokens; show the re-login hint | Opus | auto | ✅ done |
 | UM11 | Windows packaging in CI: NSIS installer artifact + smoke screenshot on `windows-latest` | Sonnet | auto | ✅ done |
-| UM11.1 | Windows on ARM (arm64): one x64 + arm64 installer, native ARM smoke screenshot in CI | Opus | auto | ⬜ todo |
+| UM11.1 | Windows on ARM (arm64): one x64 + arm64 installer, native ARM smoke screenshot in CI | Opus | auto | ✅ done |
 | UM12 | README, user + developer docs, upstream/PR notes, final `CLAUDE.md` pass | Sonnet | checkpoint | ✅ done — awaiting human Windows check |
 
-**Overall status: Phases 1–2 (UM0–UM7) done; PR #1 (phase 1 → main) and the phase-2 PR (→ um/p1-foundation) are open. Phase 3 (UM8–UM10.1, UM10.1 added mid-plan) is done on `um/p3-providers-settings`, PR #3 into `um/p2-dashboard`. Phase 4 (UM11–UM12) is done on `um/p4-ship` (which merged phase 3 for UM10.1), PR into `um/p3-providers-settings`. **Stopped at the UM12 checkpoint:** the human Windows checks in the phase-4 PR come next. The sequence goes
+**Overall status: Phases 1–2 (UM0–UM7) done; PR #1 (phase 1 → main) and the phase-2 PR (→ um/p1-foundation) are open. Phase 3 (UM8–UM10.1, UM10.1 added mid-plan) is done on `um/p3-providers-settings`, PR #3 into `um/p2-dashboard`. Phase 4 (UM11, UM11.1, UM12) is done on `um/p4-ship` (which merged phase 3 for UM10.1), PR into `um/p3-providers-settings`. **Stopped at the UM12 checkpoint:** the human Windows checks in the phase-4 PR come next. The sequence goes
 foundation → first runnable tray app with demo data at UM4 → dashboard and real providers →
 settings → Windows installer → docs, ending at a human checkpoint on a real Windows PC.**
 
@@ -1216,6 +1216,31 @@ screenshot artifact into test-results/ci/ and look at each. If green, flip UM11.
 everything as "um-step-11.1: Windows on ARM installer and smoke test" (CI-attempt commits with a
 um-step-11.1 prefix are allowed before it). Never weaken a check to get green.
 ```
+
+**Implementation notes (2026-10-15):**
+
+- **Requested by the user** so the app runs natively on Windows 11 on ARM (Parallels on an Apple
+  Silicon Mac). It arrived while UM12 was being written, so it was committed after UM12; the
+  tracker lists it before UM12.
+- **The architectures are passed on the command line** (`npm run dist:win` →
+  `electron-builder --win nsis --x64 --arm64`). CI attempt 1 relied on an arch list in
+  `electron-builder.yml`, but a target given on the command line overrides it, and the log showed
+  `archs=x64`, an x64-only installer of the same size as before. Attempt 2 passes both flags.
+  In run 38783236440 the log reads `archs=x64, arm64` for one `UsageMaxx-Setup-0.1.0.exe`, packaged
+  from `dist\win-unpacked` and `dist\win-arm64-unpacked`. The `usagemaxx-installer` artifact grew
+  from 111 MB to 216 MB, and the x64 smoke screenshot from that run looked right. The yml keeps
+  `x64` only as a default, with a comment saying the command line decides.
+- **`package (windows-11-arm)` works on GitHub's hosted Windows ARM runner.** In run 38782435117
+  it ran `npm run verify` natively on ARM (all tests pass), packaged with `arch=arm64` into
+  `dist/win-arm64-unpacked`, launched that `UsageMaxx.exe` under Playwright, and uploaded
+  `popup-demo-arm64.png`. Downloaded and looked at: identical to the x64 screenshot (Claude, Codex,
+  and Cursor cards, pace colors, countdowns, footer). Nothing needed deferring.
+- **Nothing in the app assumed x64**: paths come from environment variables, the Credential
+  Manager reader is PowerShell with pointer-sized `IntPtr` marshaling (Windows on ARM ships native
+  ARM64 PowerShell), SQLite is Electron's built-in `node:sqlite`, and the tray icons are PNGs drawn
+  in code. No code changed.
+- **Not verified:** installing and running on a real Windows on ARM PC or Parallels (the UM12
+  human check, Task Manager → Details → Architecture should read ARM64).
 
 ---
 

@@ -41,6 +41,11 @@ There are no releases yet. The installer is built by CI on every push:
 4. The installer is per-user (no admin rights needed), lets you pick the folder, and adds a
    Start-menu shortcut.
 
+**One installer for every Windows PC.** It holds both an x64 build (Intel and AMD PCs) and an
+arm64 build, and installs the one that matches: Windows on ARM laptops such as Snapdragon
+machines, and Windows 11 on ARM in Parallels on an Apple Silicon Mac, get the native ARM build
+instead of running under emulation.
+
 **Show the icon on the taskbar.** Windows 11 hides new tray icons in the overflow (**^**) menu.
 Either drag the UsageMaxx icon from the overflow onto the taskbar, or go to **Settings →
 Personalization → Taskbar → Other system tray icons** and turn **UsageMaxx** on. (Windows 10:
