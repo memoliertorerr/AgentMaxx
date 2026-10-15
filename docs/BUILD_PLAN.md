@@ -56,11 +56,12 @@
 | UM10.1 | Read-only logins: never refresh tokens; show the re-login hint | Opus | auto | ✅ done |
 | UM11 | Windows packaging in CI: NSIS installer artifact + smoke screenshot on `windows-latest` | Sonnet | auto | ✅ done |
 | UM11.1 | Windows on ARM (arm64): one x64 + arm64 installer, native ARM smoke screenshot in CI | Opus | auto | ✅ done |
-| UM12 | README, user + developer docs, upstream/PR notes, final `CLAUDE.md` pass | Sonnet | checkpoint | ✅ done — awaiting human Windows check |
+| UM12 | README, user + developer docs, upstream/PR notes, final `CLAUDE.md` pass | Sonnet | checkpoint | ✅ done — human check passed 2026-10-16 |
 
-**Overall status: Phases 1–2 (UM0–UM7) done; PR #1 (phase 1 → main) and the phase-2 PR (→ um/p1-foundation) are open. Phase 3 (UM8–UM10.1, UM10.1 added mid-plan) is done on `um/p3-providers-settings`, PR #3 into `um/p2-dashboard`. Phase 4 (UM11, UM11.1, UM12) is done on `um/p4-ship` (which merged phase 3 for UM10.1), PR into `um/p3-providers-settings`. **Stopped at the UM12 checkpoint:** the human Windows checks in the phase-4 PR come next. The sequence goes
-foundation → first runnable tray app with demo data at UM4 → dashboard and real providers →
-settings → Windows installer → docs, ending at a human checkpoint on a real Windows PC.**
+**Overall status: v0.1 is complete. All steps UM0–UM12 (with UM10.1 and UM11.1, added mid-plan)
+are done, the user's Windows check passed on 2026-10-16, and PRs #1–#4 were merged into `main` that
+day, in order, with merge commits, at the user's request. The phase branches are kept. New work
+starts from `main` (see Deferred follow-ups and Later).**
 
 **Model note:** phases 1 and 2 need the stronger model: UM2 (contract) and UM3 (refresh
 engine) shape every later step, UM4 is the likeliest spike (tray rendering and popup
@@ -1354,6 +1355,15 @@ um/p3-providers-settings using the PR description template with the Windows chec
   upstream notes, and when the README's provider table, Privacy, and Risks and terms must change.
 - **Human check (the checkpoint):** the Windows checklist in the phase-4 PR.
 
+**Human check result (2026-10-16):** the user installed the CI build on Windows 11 on ARM
+(Parallels on an Apple Silicon Mac, VM on an external SSD) and, with live Claude and Codex logins,
+reported that everything worked: install, the tray and popup, first run, and live numbers. The first
+attempt found a real bug, ARM64 program files missing after install, fixed under UM11.1. Not checked
+by hand, by the user's choice: API keys, Read-only Logins, and uninstalling; the user has no accounts
+for the other eight providers. The README's Status section says so. The user then asked for the four
+PRs to be merged into `main`, a one-time authorization: CLAUDE.md's rule that Claude never merges its
+own PR stands for future work.
+
 ---
 
 ## Deferred follow-ups (cross-step, live tracker)
@@ -1365,6 +1375,9 @@ um/p3-providers-settings using the PR description template with the Windows chec
   Star for menu bar, Refresh, and Customize on right-click. UM5 has hover refresh and click
   toggles but no context menus; UM10's settings view covers hide and pin. Adding them needs an
   IPC call that opens a native `Menu` from main at the cursor.
+- **Hand-test the rest** (surfaced by the UM12 check). Saving, revealing, and clearing an API key
+  (DPAPI), Read-only Logins with a real expired login, uninstalling, and the eight providers without a
+  live account so far (Copilot, Cursor, Devin, Grok, Ollama, OpenCode Go, OpenRouter, Z.ai).
 - **Smaller installers** (surfaced by the UM11.1 fix). Zip packaging makes the combined x64 + arm64
   installer 304 MB. Options: separate per-architecture installers, or 7z again once electron-builder's
   `Nsis7z` decodes the ARM64 filter (or lets the filter be turned off). `install-check.ps1` will show

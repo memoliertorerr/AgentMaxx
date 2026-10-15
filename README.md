@@ -29,11 +29,24 @@ on the tray icon.
   to the tray, save API keys (encrypted), launch at login, Read-only Logins, used/left,
   countdown/exact time, 12/24-hour time, and light/dark theme.
 
+## Status
+
+Version 0.1: unofficial, unsigned, and new.
+
+- **Checked by hand** on Windows 11 on ARM (Parallels on an Apple Silicon Mac) with live Claude and
+  Codex accounts: installing, the tray icon and popup, first run, and live usage numbers.
+- **Checked automatically on every build:** the installer is run on both an x64 and an ARM Windows
+  machine in CI, and the installed app is launched; unit tests cover every provider against recorded
+  API responses.
+- **Not yet checked by hand:** the other eight providers with live accounts, saving API keys, Read-only
+  Logins, and uninstalling. If you use any of them, reports are welcome in
+  [Issues](https://github.com/memoliertorerr/OpenUsageMaxx/issues).
+
 ## Install
 
 There are no releases yet. The installer is built by CI on every push:
 
-1. Open the repository's **Actions** tab, then the latest successful **CI** run.
+1. Open the repository's **Actions** tab, then the latest successful **CI** run on `main`.
 2. Under **Artifacts**, download **usagemaxx-installer** (GitHub asks you to sign in) and unzip
    it to get `UsageMaxx-Setup-0.1.0.exe`.
 3. Run it. The installer isn't code-signed, so Windows SmartScreen shows "Windows protected your
