@@ -1,0 +1,37 @@
+{
+  "name": "usagemaxx",
+  "productName": "UsageMaxx",
+  "version": "0.1.0",
+  "description": "Your AI coding subscription limits in the Windows tray. Unofficial Windows port of OpenUsage.",
+  "private": true,
+  "license": "MIT",
+  "author": "Mehmet Ali Ertorer",
+  "homepage": "https://github.com/memoliertorerr/OpenUsageMaxx",
+  "main": "out/main/index.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "test": "vitest run",
+    "verify": "npm run typecheck && npm run test",
+    "dist:win": "electron-vite build && electron-builder --win nsis --x64 --publish never"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "electron": "44.7.2",
+    "electron-builder": "26.15.3",
+    "electron-vite": "6.0.0",
+    "playwright-core": "1.64.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "typescript": "6.0.3",
+    "vite": "8.3.4",
+    "vitest": "5.0.5"
+  }
+}

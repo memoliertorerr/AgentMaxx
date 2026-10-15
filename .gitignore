@@ -1,2 +1,9 @@
 .claude/settings.local.json
 .DS_Store
+.cache/
+node_modules/
+out/
+dist/
+coverage/
+test-results/
+*.log
