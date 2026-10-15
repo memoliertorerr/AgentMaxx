@@ -44,15 +44,27 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run dist:win
-      - name: Smoke-launch the packaged app and screenshot the popup (demo data)
-        run: node scripts/smoke-launch.mjs --exe "dist/win-unpacked/UsageMaxx.exe" --screenshot
-        env:
-          USAGEMAXX_DEMO: '1'
       - uses: actions/upload-artifact@v7
         with:
           name: usagemaxx-installer
           path: dist/*.exe
           if-no-files-found: error
+      - name: Show how each architecture's app package is compressed
+        run: |
+          foreach ($package in Get-ChildItem dist\*.nsis.*) {
+            Write-Host "== $($package.Name)"
+            & "C:\Program Files\7-Zip\7z.exe" l -slt $package.FullName | Select-String '^Method = ' | Sort-Object -Unique | Out-String | Write-Host
+          }
+      - name: Smoke-launch the packaged app and screenshot the popup (demo data)
+        run: node scripts/smoke-launch.mjs --exe "dist/win-unpacked/UsageMaxx.exe" --screenshot
+        env:
+          USAGEMAXX_DEMO: '1'
+      - name: Install with the real installer and check the x64 app is complete
+        run: pwsh scripts/install-check.ps1 -Installer (Get-ChildItem dist\UsageMaxx-Setup-*.exe).FullName -Arch x64
+      - name: Smoke-launch the installed app (demo data)
+        run: node scripts/smoke-launch.mjs --exe "$env:LOCALAPPDATA\Programs\UsageMaxx\UsageMaxx.exe" --screenshot --name popup-installed-x64
+        env:
+          USAGEMAXX_DEMO: '1'
       - uses: actions/upload-artifact@v7
         if: always()
         with:
@@ -63,7 +75,8 @@ jobs:
 
   package-arm64:
     name: package (windows-11-arm)
-    needs: verify
+    # Needs the combined installer from `package`, to install it on ARM.
+    needs: [verify, package]
     runs-on: windows-11-arm
     env:
       CSC_IDENTITY_AUTO_DISCOVERY: 'false'
@@ -79,6 +92,16 @@ jobs:
         run: npx electron-vite build && npx electron-builder --win dir --arm64 --publish never
       - name: Smoke-launch the arm64 app natively and screenshot the popup (demo data)
         run: node scripts/smoke-launch.mjs --exe "dist/win-arm64-unpacked/UsageMaxx.exe" --screenshot --name popup-demo-arm64
+        env:
+          USAGEMAXX_DEMO: '1'
+      - uses: actions/download-artifact@v8
+        with:
+          name: usagemaxx-installer
+          path: installer
+      - name: Install with the real installer and check the ARM64 app is complete
+        run: pwsh scripts/install-check.ps1 -Installer (Get-ChildItem installer\UsageMaxx-Setup-*.exe).FullName -Arch ARM64
+      - name: Smoke-launch the installed app natively (demo data)
+        run: node scripts/smoke-launch.mjs --exe "$env:LOCALAPPDATA\Programs\UsageMaxx\UsageMaxx.exe" --screenshot --name popup-installed-arm64
         env:
           USAGEMAXX_DEMO: '1'
       - uses: actions/upload-artifact@v7
