@@ -53,10 +53,10 @@
 | UM8 | Providers: OpenRouter + Z.ai + encrypted API-key storage | Sonnet | auto | ✅ done |
 | UM9 | Providers: Grok + Devin + OpenCode Go + Ollama Cloud | Opus | auto | ✅ done |
 | UM10 | Settings view: providers, pins, API keys, launch at login, first-run welcome | Sonnet | auto | ✅ done |
-| UM11 | Windows packaging in CI: NSIS installer artifact + smoke screenshot on `windows-latest` | Sonnet | auto | ⬜ todo |
+| UM11 | Windows packaging in CI: NSIS installer artifact + smoke screenshot on `windows-latest` | Sonnet | auto | ✅ done |
 | UM12 | README, user + developer docs, upstream/PR notes, final `CLAUDE.md` pass | Sonnet | checkpoint | ⬜ todo |
 
-**Overall status: Phases 1–2 (UM0–UM7) done; PR #1 (phase 1 → main) and the phase-2 PR (→ um/p1-foundation) are open. Phase 3 (UM8–UM10) is done on `um/p3-providers-settings`; its PR goes into `um/p2-dashboard`. Next is phase 4 from UM11 (Windows packaging in CI). The sequence goes
+**Overall status: Phases 1–2 (UM0–UM7) done; PR #1 (phase 1 → main) and the phase-2 PR (→ um/p1-foundation) are open. Phase 3 (UM8–UM10) is done on `um/p3-providers-settings`; its PR goes into `um/p2-dashboard`. Phase 4 is in progress on `um/p4-ship`: UM11 done, next is UM12 (README and docs, a checkpoint). The sequence goes
 foundation → first runnable tray app with demo data at UM4 → dashboard and real providers →
 settings → Windows installer → docs, ending at a human checkpoint on a real Windows PC.**
 
@@ -1083,6 +1083,27 @@ installer and smoke screenshot in CI" (fix-up commits from failed CI attempts ar
 before it, each with a um-step-11 prefix and a description). Paste the verify output,
 `git log -1 --stat`, and the CI run URL. Never weaken a check to get green.
 ```
+
+**Implementation notes (2026-10-15):**
+
+- **The package job went green on the first attempt** (run 38780750298, commit `1bc87cd4`, pushed
+  as "CI attempt 1" so CI could run before the tracker flipped). It built
+  `UsageMaxx-Setup-0.1.0.exe` (about 111 MB as an artifact), launched
+  `dist/win-unpacked/UsageMaxx.exe` under Playwright with demo data, and saved `popup-demo.png`.
+  The screenshot, downloaded to `test-results/ci/`, shows the packaged app on Windows: Claude,
+  Codex, and Cursor cards in Segoe UI at 360×600, with pace colors, reset countdowns, and the
+  footer.
+- **`actions/upload-artifact@v7`, not `@v4`**: v7 is the current major, matching the v7 checkout
+  and setup-node from UM1.
+- **The icon script loads the TypeScript encoders through Vite 8's `runnerImport`**, because a
+  plain `.mjs` can't import `.ts` files. Vite is already a devDependency, so nothing was added. The
+  PNG-in-ICO writer is `src/core/ico.ts`, with a test.
+- **`CSC_IDENTITY_AUTO_DISCOVERY=false`** keeps electron-builder from looking for a signing
+  certificate, since the build is unsigned by design.
+- **The screenshot upload warns instead of failing when there's nothing to upload**, so a smoke
+  failure isn't reported twice.
+- **Not verified:** installing, launching at login, and uninstalling from the NSIS installer, the
+  tray icon in the real notification area, and DPI scaling. Those are UM12 human checks.
 
 ---
 

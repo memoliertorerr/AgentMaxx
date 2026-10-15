@@ -136,3 +136,19 @@ Development runs redirect `userData` into the repo's `.cache/` (`scripts/env.sh`
 
 `scripts/smoke-launch.mjs` uses these to launch the built or packaged app under Playwright and
 screenshot the popup.
+
+## Build and packaging
+
+- `npm run build` bundles main, preload, and renderer into `out/` with electron-vite. React is a
+  devDependency that Vite bundles, so the packaged app ships no `node_modules`.
+- `npm run dist:win` runs electron-builder (`electron-builder.yml`): an x64 NSIS installer,
+  per-user, with a choice of install folder, a Start-menu shortcut, and no desktop shortcut. It
+  writes `dist/UsageMaxx-Setup-<version>.exe` and the unpacked app in `dist/win-unpacked/`. The
+  build is unsigned, so Windows SmartScreen warns on first run.
+- The app icon (`build/icon.png`, `build/icon.ico` with 16–256 px PNG entries) is drawn by the
+  same code as the tray's app mark: `scripts/make-icons.mjs` loads `src/main/trayIcon.ts` and
+  `src/core/ico.ts` through Vite's `runnerImport`. The files are committed; rerun the script
+  after changing the mark.
+- CI's `package (windows-latest)` job builds the installer on a real Windows runner, launches
+  the unpacked `UsageMaxx.exe` with demo data under Playwright, screenshots the popup, and uploads
+  `usagemaxx-installer` and `smoke-screenshots` as artifacts.
