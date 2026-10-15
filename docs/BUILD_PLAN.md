@@ -45,7 +45,7 @@
 | UM0 | Scope docs: this plan, `CLAUDE.md` standing instructions, `LICENSE` + `NOTICE` | Opus | auto | ✅ done |
 | UM1 | Scaffold Electron + electron-vite + React + TS strict; CI running verify on Ubuntu + Windows | Opus | auto | ✅ done |
 | UM2 | Core contract: metric types, provider runtime, errors, HTTP, Windows paths, formatting | Opus | auto | ✅ done |
-| UM3 | Refresh engine, snapshot cache, settings store | Opus | auto | ⬜ todo |
+| UM3 | Refresh engine, snapshot cache, settings store | Opus | auto | ✅ done |
 | UM4 | Tray + popup window + positioning + dynamic tray icon + demo provider (first runnable) | Opus | auto | ⬜ todo |
 | UM5 | Dashboard UI: provider cards, meters, pace colors, resets, errors, footer | Opus | auto | ⬜ todo |
 | UM6 | Providers: Claude + Codex | Opus | auto | ⬜ todo |
@@ -56,7 +56,7 @@
 | UM11 | Windows packaging in CI: NSIS installer artifact + smoke screenshot on `windows-latest` | Sonnet | auto | ⬜ todo |
 | UM12 | README, user + developer docs, upstream/PR notes, final `CLAUDE.md` pass | Sonnet | checkpoint | ⬜ todo |
 
-**Overall status: UM0–UM2 done. Next is UM3 (refresh engine), still in phase 1. The sequence goes
+**Overall status: UM0–UM3 done. Next is UM4 (tray, popup, demo data), which ends phase 1. The sequence goes
 foundation → first runnable tray app with demo data at UM4 → dashboard and real providers →
 settings → Windows installer → docs, ending at a human checkpoint on a real Windows PC.**
 
@@ -541,6 +541,27 @@ everything as one commit: "um-step-3: refresh engine, snapshot cache, settings s
 the verify output and `git log -1 --stat`. If it is still red after two honest fix attempts,
 stop and report — never commit red, never weaken a check to get green.
 ```
+
+**Implementation notes (2026-10-15):**
+
+- **Settings follow upstream's enablement model.** That means `enabledProviders` (null until
+  the first-run answer) plus `knownProviders`, so a provider added in a later version can be
+  told apart from one the user switched off.
+- **More display preferences than the prompt listed.** Settings also hold `timeFormat`,
+  `alwaysShowPacing`, and `theme`; each is cheap and documented in upstream `settings.md`.
+  Launch at login is not stored: the OS login-item registry is the source of truth, as upstream.
+- **Pin rules live as pure helpers in `settings.ts`** (`togglePin`, `setMetricFlag`,
+  `setProviderEnabled`), so UM10's UI only calls them. The tray draws at most two bars; the
+  tooltip lists every pin (UM4).
+- **Without `force`, a pass skips providers refreshed within 90% of the interval.** That way a
+  provider enabled a minute before the timer doesn't double-fetch. Manual refreshes force.
+- **Staleness is the snapshot's age (over two intervals, about ten minutes)**, matching upstream's
+  "Outdated" rule. It isn't a separate "from previous session" flag. The flag still exists and
+  forces the first pass to refetch cached providers.
+- **Added `src/main/log.ts` (file logger) and `src/main/context.ts` (the real ProviderContext)**,
+  which the store needs. Credential Manager secrets and API keys are empty stubs until UM7 and UM8.
+- **Fixed before commit:** an operator-precedence slip in the log rotation check
+  (`size ?? 0 > MAX`) that would have rotated the log on every launch.
 
 ---
 
