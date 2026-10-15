@@ -7,6 +7,8 @@
 //   node scripts/smoke-launch.mjs --screenshot          open the popup with demo data and save
 //                                                       test-results/popup-demo.png
 //   node scripts/smoke-launch.mjs --screenshot --theme dark --name popup-dark
+//   node scripts/smoke-launch.mjs --screenshot --scroll-bottom   also capture the end of the list
+//   node scripts/smoke-launch.mjs --screenshot --expand          open the first card's caret first
 //
 // Every run uses a fresh profile under test-results/, so screenshots are reproducible and the
 // real user profile is never touched.
@@ -47,6 +49,8 @@ const env = {
 const app = await electron.launch({
   ...(executablePath ? { executablePath, args: [] } : { args: ['.'] }),
   env,
+  // Playwright emulates a light color scheme unless told otherwise.
+  colorScheme: theme === 'dark' ? 'dark' : 'light',
   timeout: TIMEOUT_MS
 })
 
@@ -68,9 +72,23 @@ try {
     await page.waitForSelector('[data-ready="true"]', { timeout: TIMEOUT_MS })
     // Let the demo providers finish their first refresh and the popup settle at its final size.
     await page.waitForTimeout(SETTLE_MS)
+    if (args.includes('--expand')) {
+      await page.locator('.caret').first().click()
+      await page.waitForTimeout(300)
+    }
     const file = path.join(resultsDir, `${name}.png`)
     await page.screenshot({ path: file })
     console.log(`screenshot: ${path.relative(process.cwd(), file)}`)
+    if (args.includes('--scroll-bottom')) {
+      await page.evaluate(() => {
+        const scroller = document.querySelector('.scroll')
+        if (scroller) scroller.scrollTop = scroller.scrollHeight
+      })
+      await page.waitForTimeout(200)
+      const bottom = path.join(resultsDir, `${name}-bottom.png`)
+      await page.screenshot({ path: bottom })
+      console.log(`screenshot: ${path.relative(process.cwd(), bottom)}`)
+    }
   }
 } finally {
   await app.close()

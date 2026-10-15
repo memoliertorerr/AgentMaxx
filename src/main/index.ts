@@ -16,6 +16,7 @@ const demo = process.env.USAGEMAXX_DEMO === '1'
 const smoke = process.env.USAGEMAXX_SMOKE === '1'
 const smokeShow = process.env.USAGEMAXX_SMOKE_SHOW === '1'
 const forcedTheme = process.env.USAGEMAXX_THEME
+const smokeView = process.env.USAGEMAXX_SMOKE_VIEW
 
 // Development runs keep the app's data inside the repo (scripts/env.sh sets this), so nothing is
 // written to the user's real profile while building. Demo data never mixes with real data.
@@ -104,6 +105,7 @@ async function main(): Promise<void> {
 
   if (smoke) console.log('usagemaxx:ready')
   if (smokeShow) popup.show(tray.bounds)
+  if (smokeView === 'settings') popup.window.webContents.send(IPC.navigate, smokeView)
 }
 
 if (!app.requestSingleInstanceLock()) {

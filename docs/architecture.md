@@ -75,6 +75,12 @@ tolerantly, so a corrupt file falls back to defaults.
 - **Popup** (`src/main/popup.ts`). A frameless, always-on-top window kept out of the taskbar and
   Alt+Tab. It opens next to the tray icon on whichever edge the taskbar sits
   (`positioning.ts`), and hides when it loses focus, like the Windows clock and volume flyouts.
+- **Dashboard** (`src/renderer/`). One card per enabled provider: its name, plan, spinner, and
+  error, warning, or "Outdated" markers, then its always-visible metrics. On-demand metrics and
+  quick links sit behind a caret. Rows are built from view models in `src/core/view.ts`, so the
+  meter math is tested outside React. Clicking a headline flips Used/Left everywhere; clicking
+  a reset label flips countdown/exact time. The footer shows the next update (click to refresh)
+  and an options menu. The popup sizes itself to its content up to 600 px, then scrolls.
 - **IPC** (`src/core/ipc.ts`). The channel names, the `window.usagemaxx` API, and the validation
   of every settings change. The main process rejects malformed payloads and opens only
   `http(s)` links.

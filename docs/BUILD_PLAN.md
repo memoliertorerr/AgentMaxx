@@ -47,7 +47,7 @@
 | UM2 | Core contract: metric types, provider runtime, errors, HTTP, Windows paths, formatting | Opus | auto | ✅ done |
 | UM3 | Refresh engine, snapshot cache, settings store | Opus | auto | ✅ done |
 | UM4 | Tray + popup window + positioning + dynamic tray icon + demo provider (first runnable) | Opus | auto | ✅ done |
-| UM5 | Dashboard UI: provider cards, meters, pace colors, resets, errors, footer | Opus | auto | ⬜ todo |
+| UM5 | Dashboard UI: provider cards, meters, pace colors, resets, errors, footer | Opus | auto | ✅ done |
 | UM6 | Providers: Claude + Codex | Opus | auto | ⬜ todo |
 | UM7 | Providers: Cursor + Copilot (incl. Windows Credential Manager reader) | Opus | auto | ⬜ todo |
 | UM8 | Providers: OpenRouter + Z.ai + encrypted API-key storage | Sonnet | auto | ⬜ todo |
@@ -56,7 +56,7 @@
 | UM11 | Windows packaging in CI: NSIS installer artifact + smoke screenshot on `windows-latest` | Sonnet | auto | ⬜ todo |
 | UM12 | README, user + developer docs, upstream/PR notes, final `CLAUDE.md` pass | Sonnet | checkpoint | ⬜ todo |
 
-**Overall status: Phase 1 (UM0–UM4) done; its PR is open into main. Next is phase 2 from UM5 (dashboard UI). The sequence goes
+**Overall status: Phase 1 (UM0–UM4) done; its PR is open into main. Phase 2 in progress: UM5 done, next is UM6 (Claude + Codex). The sequence goes
 foundation → first runnable tray app with demo data at UM4 → dashboard and real providers →
 settings → Windows installer → docs, ending at a human checkpoint on a real Windows PC.**
 
@@ -687,6 +687,25 @@ Paste the verify output and `git log -1 --stat`. If it is still red after two ho
 attempts, stop and report — never commit red, never weaken a check to get green.
 ```
 
+**Implementation notes (2026-10-15):**
+
+- **View logic lives in `src/core/view.ts`** (`progressRow`, `valuesText`, `cardSections`,
+  `nextUpdateText`), with tests, so the components hold no math. That includes upstream's rule
+  that a provider keeps at least one always-visible row.
+- **Pace notes match upstream.** Amber shows "~N% spare", red shows a flame with "Limit in …"
+  or "Limit reached", and "Always Show Pacing" adds the cushion note and tick on healthy bars.
+- **A provider that has never loaded shows its error message in place of rows.** That avoids a
+  column of "No data". A provider with data shows a red error icon beside its name, with the
+  message on hover.
+- **The footer menu adds "Report an Issue…"** (opens this repo's issues) alongside Settings,
+  Refresh Now, and Quit. The Settings screen is a placeholder until UM10.
+- **The smoke script gained `--theme`, `--scroll-bottom`, and `--expand`.** Playwright emulates
+  a light color scheme by default, so `--theme dark` passes `colorScheme` through.
+- **TypeScript 6 checks side-effect imports**, so `src/renderer/assets.d.ts` declares `*.css`.
+- **Verified by screenshots (macOS):** light, dark, end of the list (dollar meter, values,
+  warning, Outdated, error card), and an expanded card (divider, on-demand rows, quick links).
+  Right-click row menus from upstream were not built (see Deferred follow-ups).
+
 ---
 
 ### UM6 — Providers: Claude + Codex · Opus · auto
@@ -979,6 +998,10 @@ um/p3-providers-settings using the PR description template with the Windows chec
 > Things a step noticed but were out of its own scope. Strike through when handled; don't
 > delete.
 
+- **Right-click menus on rows and provider headers** (surfaced by UM5). Upstream offers Hide,
+  Star for menu bar, Refresh, and Customize on right-click. UM5 has hover refresh and click
+  toggles but no context menus; UM10's settings view covers hide and pin. Adding them needs an
+  IPC call that opens a native `Menu` from main at the cursor.
 - *(Steps add to this list as they surface out-of-scope friction.)*
 
 ---

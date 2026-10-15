@@ -107,7 +107,7 @@ export function createDemoProviders(): ProviderRuntime[] {
         refreshedAt: now.toISOString(),
         lines: [
           { type: 'progress', label: 'Total Usage', used: 82, limit: 100, format: { kind: 'percent' } },
-          windowed('Cursor Models', 40, 30 * DAY, 18 * DAY, now),
+          windowed('Cursor Models', 34, 30 * DAY, 18 * DAY, now),
           windowed('Other Models', 15, 30 * DAY, 18 * DAY, now),
           { type: 'progress', label: 'Requests', used: 312, limit: 500, format: { kind: 'count', suffix: 'requests' } }
         ]
