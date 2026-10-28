@@ -54,7 +54,7 @@ export function ProviderCard({ provider, settings, now, change }: CardProps): Re
         {provider.refreshing ? (
           <span className="spinner" role="status" aria-label="Refreshing" />
         ) : (
-          <button className="icon-button refresh" title={`Refresh ${provider.info.displayName}`} onClick={() => void window.usagemaxx.refreshProvider(id)}>
+          <button className="icon-button refresh" title={`Refresh ${provider.info.displayName}`} onClick={() => void window.agentmaxx.refreshProvider(id)}>
             <RefreshIcon />
           </button>
         )}
@@ -71,7 +71,7 @@ export function ProviderCard({ provider, settings, now, change }: CardProps): Re
           {provider.info.links.length > 0 ? (
             <div className="links">
               {provider.info.links.map((link) => (
-                <button key={link.url} className="link-button" onClick={() => void window.usagemaxx.openExternal(link.url)}>
+                <button key={link.url} className="link-button" onClick={() => void window.agentmaxx.openExternal(link.url)}>
                   {link.label}
                 </button>
               ))}

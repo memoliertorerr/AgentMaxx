@@ -1,4 +1,4 @@
-// The UsageMaxx mark: a three-quarter gauge ring, the same shape the tray icon draws when nothing
+// The AgentMaxx mark: a three-quarter gauge ring, the same shape the tray icon draws when nothing
 // is pinned (src/main/trayIcon.ts). No upstream artwork.
 
 const C = 16

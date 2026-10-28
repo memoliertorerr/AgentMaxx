@@ -15,12 +15,12 @@ The meters are account-wide: the same percentages OpenCode's dashboard shows, in
 other machines. "Go" shows beside the name when the key has a Go subscription.
 
 While the rolling session has nothing in it, Session reads **Not started**; the API reports a
-"if you started now" reset then, which UsageMaxx drops. Once the window is running, the countdown
+"if you started now" reset then, which AgentMaxx drops. Once the window is running, the countdown
 shows, even while the whole-percent figure still reads 0%.
 
 ## Where credentials come from
 
-Use OpenCode as usual and log into OpenCode Go. UsageMaxx reads the `opencode-go` key from
+Use OpenCode as usual and log into OpenCode Go. AgentMaxx reads the `opencode-go` key from
 OpenCode's `auth.json` in its data directory:
 
 1. `%OPENCODE_DATA_DIR%\auth.json`, when set
@@ -49,6 +49,6 @@ matter.
 
 - the Today / Yesterday / Last 30 Days spend tiles and usage trend from OpenCode's SQLite logs, and
   the Codex attribution of OpenCode's ChatGPT logins (see the [roadmap](../roadmap.md))
-- OpenCode 2's credential tables in `opencode*.db`. UsageMaxx reads OpenCode 1's `auth.json`
+- OpenCode 2's credential tables in `opencode*.db`. AgentMaxx reads OpenCode 1's `auth.json`
   only. OpenCode 2 imports that file and keeps it, so it still holds the key; but a logout or new
   login made in OpenCode 2 isn't seen until this is ported (see the [roadmap](../roadmap.md))

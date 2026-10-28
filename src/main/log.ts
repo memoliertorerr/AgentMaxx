@@ -2,7 +2,7 @@ import { appendFileSync, mkdirSync, renameSync, statSync } from 'node:fs'
 import path from 'node:path'
 import type { Logger } from '../core/runtime'
 
-// A small file logger: <logs>/usagemaxx.log, rotated to usagemaxx.log.1 past 2 MB at startup.
+// A small file logger: <logs>/agentmaxx.log, rotated to agentmaxx.log.1 past 2 MB at startup.
 // Callers never pass secrets; messages carry categories, paths, and HTTP statuses only.
 
 const MAX_BYTES = 2 * 1024 * 1024
@@ -14,7 +14,7 @@ export interface FileLogger extends Logger {
 }
 
 export function createFileLogger(directory: string, options: { minLevel?: Level; echo?: boolean } = {}): FileLogger {
-  const filePath = path.join(directory, 'usagemaxx.log')
+  const filePath = path.join(directory, 'agentmaxx.log')
   const minLevel = options.minLevel ?? 'info'
   try {
     mkdirSync(directory, { recursive: true })
@@ -23,7 +23,7 @@ export function createFileLogger(directory: string, options: { minLevel?: Level;
       renameSync(filePath, `${filePath}.1`)
     }
   } catch (error) {
-    console.error(`usagemaxx: couldn't prepare the log folder: ${String(error)}`)
+    console.error(`agentmaxx: couldn't prepare the log folder: ${String(error)}`)
   }
 
   const write = (level: Level, scope: string, message: string): void => {

@@ -1,10 +1,10 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { IPC, type UsageMaxxApi, type View } from '../core/ipc'
+import { IPC, type AgentMaxxApi, type View } from '../core/ipc'
 import type { AppState } from '../core/state'
 
 // The renderer's only door into the app: a fixed set of calls, no raw ipcRenderer.
 
-const api: UsageMaxxApi = {
+const api: AgentMaxxApi = {
   getState: () => ipcRenderer.invoke(IPC.getState),
   onState(listener) {
     const handler = (_event: Electron.IpcRendererEvent, state: AppState) => listener(state)
@@ -36,4 +36,4 @@ const api: UsageMaxxApi = {
   setLaunchAtLogin: (enabled) => ipcRenderer.invoke(IPC.setLaunchAtLogin, enabled)
 }
 
-contextBridge.exposeInMainWorld('usagemaxx', api)
+contextBridge.exposeInMainWorld('agentmaxx', api)

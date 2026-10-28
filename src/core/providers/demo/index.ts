@@ -2,7 +2,7 @@ import { ProviderError } from '../../errors'
 import type { ProviderContext, ProviderRuntime } from '../../runtime'
 import type { MetricDescriptor, MetricLine, ProviderInfo, ProviderSnapshot } from '../../types'
 
-// Fixed sample data for screenshots and development (USAGEMAXX_DEMO=1). Covers every shape the
+// Fixed sample data for screenshots and development (AGENTMAXX_DEMO=1). Covers every shape the
 // dashboard renders: percent / dollar / count meters with and without resets, values, badges,
 // a provider that errors, one with a soft warning, and one whose data is outdated. Never
 // registered alongside real providers, and its ids are prefixed so caches can't mix.

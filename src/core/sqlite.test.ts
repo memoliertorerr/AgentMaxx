@@ -10,7 +10,7 @@ let dir: string
 const reader = createSqliteReader(async (file) => existsSync(file))
 
 beforeEach(async () => {
-  dir = await mkdtemp(path.join(tmpdir(), 'usagemaxx-sqlite-'))
+  dir = await mkdtemp(path.join(tmpdir(), 'agentmaxx-sqlite-'))
 })
 
 afterEach(async () => {

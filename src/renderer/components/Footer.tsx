@@ -30,7 +30,7 @@ export function Footer({ state, now, onOpenSettings }: FooterProps): React.JSX.E
   return (
     <footer className="footer">
       <span className="footer-version">v{state.version}</span>
-      <button className="footer-update" onClick={() => void window.usagemaxx.refresh()} title="Refresh all providers now (F5)">
+      <button className="footer-update" onClick={() => void window.agentmaxx.refresh()} title="Refresh all providers now (F5)">
         {state.refreshing ? <span className="spinner" /> : <RefreshIcon size={11} />}
         {nextUpdateText(state.nextRefreshAt, state.refreshing, now)}
       </button>
@@ -44,15 +44,15 @@ export function Footer({ state, now, onOpenSettings }: FooterProps): React.JSX.E
             <button role="menuitem" onClick={run(onOpenSettings)}>
               Settings
             </button>
-            <button role="menuitem" onClick={run(() => void window.usagemaxx.refresh())}>
+            <button role="menuitem" onClick={run(() => void window.agentmaxx.refresh())}>
               Refresh Now
             </button>
-            <button role="menuitem" onClick={run(() => void window.usagemaxx.openExternal('https://github.com/memoliertorerr/OpenUsageMaxx/issues'))}>
+            <button role="menuitem" onClick={run(() => void window.agentmaxx.openExternal('https://github.com/memoliertorerr/AgentMaxx/issues'))}>
               Report an Issue…
             </button>
             <hr />
-            <button role="menuitem" onClick={run(() => window.usagemaxx.quit())}>
-              Quit UsageMaxx
+            <button role="menuitem" onClick={run(() => window.agentmaxx.quit())}>
+              Quit AgentMaxx
             </button>
           </div>
         ) : null}

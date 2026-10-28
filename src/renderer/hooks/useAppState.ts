@@ -8,11 +8,11 @@ export function useAppState(onNavigate: (view: View) => void): AppState | undefi
 
   useEffect(() => {
     let active = true
-    void window.usagemaxx.getState().then((initial) => {
+    void window.agentmaxx.getState().then((initial) => {
       if (active) setState(initial)
     })
-    const stopState = window.usagemaxx.onState(setState)
-    const stopNavigate = window.usagemaxx.onNavigate(onNavigate)
+    const stopState = window.agentmaxx.onState(setState)
+    const stopNavigate = window.agentmaxx.onNavigate(onNavigate)
     return () => {
       active = false
       stopState()

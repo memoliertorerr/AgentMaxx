@@ -9,7 +9,7 @@ import { codexAuthError } from './auth'
 export const CODEX_CLIENT_ID = 'app_EMoamEEZ73f0CkXaXp7hrann'
 const REFRESH_URL = 'https://auth.openai.com/oauth/token'
 const USAGE_URL = 'https://chatgpt.com/backend-api/wham/usage'
-const USER_AGENT = 'UsageMaxx'
+const USER_AGENT = 'AgentMaxx'
 
 export function fetchCodexUsage(ctx: ProviderContext, accessToken: string, accountId: string | undefined): Promise<HttpResponse> {
   return ctx.http.request(

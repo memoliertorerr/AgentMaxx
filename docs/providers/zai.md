@@ -1,7 +1,7 @@
 # Z.ai
 
 Tracks [Z.ai](https://z.ai) (Zhipu AI) GLM Coding Plan quotas from an API key you give
-UsageMaxx. Ported from OpenUsage's
+AgentMaxx. Ported from OpenUsage's
 [Z.ai provider](https://github.com/robinebers/openusage/blob/main/docs/providers/zai.md).
 
 ## What it tracks
@@ -17,10 +17,10 @@ The plan name ("GLM Coding Pro") shows beside the name when Z.ai reports it.
 ## Where the key comes from
 
 Z.ai has no CLI or app that leaves a credential on your PC, so you provide a key. Get one from
-the [Z.ai console](https://z.ai/manage-apikey/apikey-list). UsageMaxx checks, in order:
+the [Z.ai console](https://z.ai/manage-apikey/apikey-list). AgentMaxx checks, in order:
 
 1. **A key saved in Settings → API Keys** (recommended). It's encrypted with Windows DPAPI
-   (Electron `safeStorage`) and stored in `%APPDATA%\UsageMaxx\api-keys.json`, readable only by
+   (Electron `safeStorage`) and stored in `%APPDATA%\AgentMaxx\api-keys.json`, readable only by
    your Windows account. The plain key is never written to disk, and nothing is saved if
    encryption isn't available.
 2. **The `ZAI_API_KEY` environment variable**, then `GLM_API_KEY` (the older Zhipu name).
@@ -33,14 +33,14 @@ A saved key wins over an environment variable; clearing it falls back to the env
 setx ZAI_API_KEY "your-key"
 ```
 
-`setx` only affects programs started afterwards: quit UsageMaxx from its tray menu and start it
+`setx` only affects programs started afterwards: quit AgentMaxx from its tray menu and start it
 again. `setx` keeps the key in plain text in your user environment; the Settings screen is the
 safer place for it.
 
 ## Troubleshooting
 
 - **"No Z.ai API key…"**: add a key in Settings → API Keys, or set `ZAI_API_KEY` and restart
-  UsageMaxx.
+  AgentMaxx.
 - **"Z.ai API key invalid…"**: the key was rejected (401/403). Regenerate it in the
   [Z.ai console](https://z.ai/manage-apikey/apikey-list).
 - **"No active GLM Coding Plan…"**: the key works, but the account has no GLM Coding Plan, so
@@ -68,6 +68,6 @@ A 2xx answer of `success: false` mentioning a "coding plan" means the account ha
 ## Not ported
 
 - the macOS config files (`~/.config/openusage/zai.json`, `~/.config/zai/key.json`). On Windows the
-  saved key lives in UsageMaxx's encrypted store instead.
-- upstream's "No usage data" status badge for an empty quota. UsageMaxx shows "No data" on each
+  saved key lives in AgentMaxx's encrypted store instead.
+- upstream's "No usage data" status badge for an empty quota. AgentMaxx shows "No data" on each
   meter instead, as it does for every provider.

@@ -90,9 +90,9 @@ export function keyStatusText(entry: ApiKeyEntry | undefined, provider: ApiKeyPr
   const variable = entry?.environmentVariable ?? provider.envNames[0]
   switch (entry?.status) {
     case 'saved':
-      return 'Saved in UsageMaxx, encrypted'
+      return 'Saved in AgentMaxx, encrypted'
     case 'overrideActive':
-      return `Saved in UsageMaxx, used instead of ${variable}`
+      return `Saved in AgentMaxx, used instead of ${variable}`
     case 'fromEnvironment':
       return `From the ${variable} environment variable`
     default:

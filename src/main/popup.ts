@@ -37,7 +37,7 @@ export class Popup {
       alwaysOnTop: true,
       // "toolbar" keeps the popup out of Alt+Tab on Windows.
       ...(process.platform === 'win32' ? { type: 'toolbar' } : {}),
-      title: 'UsageMaxx',
+      title: 'AgentMaxx',
       backgroundColor: '#00000000',
       webPreferences: {
         preload: options.preloadPath,

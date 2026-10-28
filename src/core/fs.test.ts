@@ -7,7 +7,7 @@ import { nodeFileSystem } from './fs'
 let dir: string
 
 beforeEach(async () => {
-  dir = await mkdtemp(path.join(tmpdir(), 'usagemaxx-fs-'))
+  dir = await mkdtemp(path.join(tmpdir(), 'agentmaxx-fs-'))
 })
 
 afterEach(async () => {

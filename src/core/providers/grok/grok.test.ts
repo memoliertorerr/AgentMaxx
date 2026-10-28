@@ -141,7 +141,7 @@ describe('GrokProvider', () => {
 
     expect(ctx.http.requests.find(isRefresh)?.body).toBe('grant_type=refresh_token&client_id=client-id&refresh_token=refresh-token')
     const credits = ctx.http.requests.find(isCredits)
-    expect(credits?.headers).toMatchObject({ Authorization: 'Bearer new-token', 'X-XAI-Token-Auth': TOKEN_AUTH_HEADER, 'User-Agent': 'UsageMaxx' })
+    expect(credits?.headers).toMatchObject({ Authorization: 'Bearer new-token', 'X-XAI-Token-Auth': TOKEN_AUTH_HEADER, 'User-Agent': 'AgentMaxx' })
     expect(ctx.http.requests.find(isSettings)?.headers?.Authorization).toBe('Bearer new-token')
 
     const saved = JSON.parse(ctx.fs.files.get(AUTH) ?? '{}')

@@ -1,6 +1,6 @@
-# UsageMaxx and Upstream OpenUsage
+# AgentMaxx and Upstream OpenUsage
 
-Why UsageMaxx is a standalone project instead of a pull request to
+Why AgentMaxx is a standalone project instead of a pull request to
 [robinebers/openusage](https://github.com/robinebers/openusage), and how provider fixes found here
 could still go back upstream. Checked in October 2026.
 
@@ -26,11 +26,11 @@ could still go back upstream. Checked in October 2026.
 - **The contribution rules rule it out anyway.** Upstream's
   [CONTRIBUTING.md](https://github.com/robinebers/openusage/blob/main/CONTRIBUTING.md) is
   issue-first: external PRs without a linked issue that a maintainer labeled `approved` and assigned
-  to the PR's author are closed automatically, without review. The codebase is Swift; UsageMaxx
+  to the PR's author are closed automatically, without review. The codebase is Swift; AgentMaxx
   shares no code with it.
 - **The name.** "OpenUsage" is a trademark, and forks may not use the name or logo
   ([TRADEMARK.md](https://github.com/robinebers/openusage/blob/main/TRADEMARK.md)), so this project
-  is called UsageMaxx and has its own icon.
+  is called AgentMaxx and has its own icon.
 
 ## Sending provider fixes back
 

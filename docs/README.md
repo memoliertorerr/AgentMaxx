@@ -1,8 +1,8 @@
-# UsageMaxx Docs
+# AgentMaxx Docs
 
 Everything in `docs/`, by audience. The project's front page is the [README](../README.md).
 
-## Using UsageMaxx
+## Using AgentMaxx
 
 | Doc | What's in it |
 |---|---|
@@ -20,7 +20,7 @@ Everything in `docs/`, by audience. The project's front page is the [README](../
 
 The [README](../README.md) also covers installing, privacy, and **Risks and terms**.
 
-## Working on UsageMaxx
+## Working on AgentMaxx
 
 | Doc | What's in it |
 |---|---|

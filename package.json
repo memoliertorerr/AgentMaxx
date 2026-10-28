@@ -1,12 +1,12 @@
 {
-  "name": "usagemaxx",
-  "productName": "UsageMaxx",
+  "name": "agentmaxx",
+  "productName": "AgentMaxx",
   "version": "0.1.0",
   "description": "Your AI coding subscription limits in the Windows tray. Unofficial Windows port of OpenUsage.",
   "private": true,
   "license": "MIT",
   "author": "Mehmet Ali Ertorer",
-  "homepage": "https://github.com/memoliertorerr/OpenUsageMaxx",
+  "homepage": "https://github.com/memoliertorerr/AgentMaxx",
   "main": "out/main/index.js",
   "engines": {
     "node": ">=22"

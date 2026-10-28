@@ -16,6 +16,6 @@ export ELECTRON_CACHE="$ROOT/.cache/electron"
 export ELECTRON_BUILDER_CACHE="$ROOT/.cache/electron-builder"
 export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 export TMPDIR="$ROOT/.cache/tmp"
-export USAGEMAXX_USER_DATA="$ROOT/.cache/user-data"
+export AGENTMAXX_USER_DATA="$ROOT/.cache/user-data"
 
-mkdir -p "$npm_config_cache" "$ELECTRON_CACHE" "$ELECTRON_BUILDER_CACHE" "$TMPDIR" "$USAGEMAXX_USER_DATA"
+mkdir -p "$npm_config_cache" "$ELECTRON_CACHE" "$ELECTRON_BUILDER_CACHE" "$TMPDIR" "$AGENTMAXX_USER_DATA"

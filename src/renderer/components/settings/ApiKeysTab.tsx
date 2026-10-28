@@ -56,7 +56,7 @@ function KeyCard({ provider, info, entry, reload }: KeyCardProps): React.JSX.Ele
       setRevealed(undefined)
       return
     }
-    const key = await window.usagemaxx.revealKey(provider.id)
+    const key = await window.agentmaxx.revealKey(provider.id)
     if (key) setRevealed(key)
     else setMessage({ text: "Couldn't read the key. Save it again.", error: true })
   }
@@ -75,7 +75,7 @@ function KeyCard({ provider, info, entry, reload }: KeyCardProps): React.JSX.Ele
         className="key-form"
         onSubmit={(event) => {
           event.preventDefault()
-          void run(() => window.usagemaxx.saveKey(provider.id, draft), 'Key saved.')
+          void run(() => window.agentmaxx.saveKey(provider.id, draft), 'Key saved.')
         }}
       >
         <input
@@ -99,12 +99,12 @@ function KeyCard({ provider, info, entry, reload }: KeyCardProps): React.JSX.Ele
           </button>
         ) : null}
         {saved ? (
-          <button type="button" className="text-button danger" disabled={busy} onClick={() => void run(() => window.usagemaxx.clearKey(provider.id), 'Saved key removed.')}>
+          <button type="button" className="text-button danger" disabled={busy} onClick={() => void run(() => window.agentmaxx.clearKey(provider.id), 'Saved key removed.')}>
             Clear
           </button>
         ) : null}
         <span className="header-spacer" />
-        <button type="button" className="text-button" onClick={() => void window.usagemaxx.openExternal(provider.keysUrl)}>
+        <button type="button" className="text-button" onClick={() => void window.agentmaxx.openExternal(provider.keysUrl)}>
           Get a key
         </button>
       </div>
@@ -115,7 +115,7 @@ function KeyCard({ provider, info, entry, reload }: KeyCardProps): React.JSX.Ele
 
 export function ApiKeysTab({ state }: { state: AppState }): React.JSX.Element {
   const [entries, setEntries] = useState<ApiKeyEntry[] | undefined>(undefined)
-  const reload = useCallback(async () => setEntries(await window.usagemaxx.getKeyStatus()), [])
+  const reload = useCallback(async () => setEntries(await window.agentmaxx.getKeyStatus()), [])
 
   useEffect(() => {
     void reload()

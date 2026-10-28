@@ -30,7 +30,7 @@ const theme = option('--theme')
 const view = option('--view')
 const name = option('--name') ?? ['popup', view?.replace(/[^a-z0-9-]/gi, '-') ?? (theme ? undefined : 'demo'), theme].filter(Boolean).join('-')
 
-const READY_MARKER = 'usagemaxx:ready'
+const READY_MARKER = 'agentmaxx:ready'
 const TIMEOUT_MS = 60_000
 const SETTLE_MS = 1500
 
@@ -47,11 +47,11 @@ const baseEnv = Object.fromEntries(Object.entries(process.env).filter(([key]) =>
 const env = {
   ...baseEnv,
   ...(screenshot && view === 'keys' ? { OPENROUTER_API_KEY: 'sk-or-v1-demo-not-a-real-key' } : {}),
-  USAGEMAXX_SMOKE: '1',
-  USAGEMAXX_USER_DATA: profileDir,
-  ...(screenshot ? { USAGEMAXX_DEMO: '1', USAGEMAXX_SMOKE_SHOW: '1' } : {}),
-  ...(theme ? { USAGEMAXX_THEME: theme } : {}),
-  ...(view ? { USAGEMAXX_SMOKE_VIEW: view } : {})
+  AGENTMAXX_SMOKE: '1',
+  AGENTMAXX_USER_DATA: profileDir,
+  ...(screenshot ? { AGENTMAXX_DEMO: '1', AGENTMAXX_SMOKE_SHOW: '1' } : {}),
+  ...(theme ? { AGENTMAXX_THEME: theme } : {}),
+  ...(view ? { AGENTMAXX_SMOKE_VIEW: view } : {})
 }
 
 const app = await electron.launch({
