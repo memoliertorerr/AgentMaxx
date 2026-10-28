@@ -71,7 +71,7 @@ describe('trayTooltip', () => {
   })
 
   it('names the app when nothing is pinned', () => {
-    expect(trayTooltip(state({}))).toBe('UsageMaxx')
+    expect(trayTooltip(state({}))).toBe('AgentMaxx')
   })
 
   it('stays within the Windows tooltip limit', () => {

@@ -28,7 +28,7 @@ export class TrayController {
 
   constructor(private readonly actions: TrayActions) {
     this.tray = new Tray(buildTrayImage([]))
-    this.tray.setToolTip('UsageMaxx')
+    this.tray.setToolTip('AgentMaxx')
     this.tray.on('click', (_event, bounds) => this.actions.togglePopup(bounds))
     this.tray.on('right-click', () => this.tray.popUpContextMenu(this.menu()))
   }
@@ -60,7 +60,7 @@ export class TrayController {
       { label: 'Refresh Now', click: () => this.actions.refresh() },
       { label: 'Settings', click: () => this.actions.openSettings(this.tray.getBounds()) },
       { type: 'separator' },
-      { label: 'Quit UsageMaxx', click: () => this.actions.quit() }
+      { label: 'Quit AgentMaxx', click: () => this.actions.quit() }
     ])
   }
 }

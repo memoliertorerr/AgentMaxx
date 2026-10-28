@@ -1,5 +1,5 @@
-appId: dev.usagemaxx.app
-productName: UsageMaxx
+appId: dev.agentmaxx.app
+productName: AgentMaxx
 copyright: Copyright © 2026 Mehmet Ali Ertorer
 directories:
   output: dist
@@ -18,20 +18,20 @@ win:
       # as Snapdragon laptops and Parallels on Apple Silicon).
       arch:
         - x64
-  artifactName: UsageMaxx-Setup-${version}.${ext}
+  artifactName: AgentMaxx-Setup-${version}.${ext}
 nsis:
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: false
   createStartMenuShortcut: true
-  shortcutName: UsageMaxx
-  uninstallDisplayName: UsageMaxx
+  shortcutName: AgentMaxx
+  uninstallDisplayName: AgentMaxx
   # Pack each architecture as a zip, not 7z. Current 7-Zip compresses ARM64 .exe/.dll files with
   # its ARM64 filter, which the installer's older Nsis7z decoder can't read, and it skipped them
-  # without an error: the arm64 install had no UsageMaxx.exe or DLLs. Zip has no such filters,
+  # without an error: the arm64 install had no AgentMaxx.exe or DLLs. Zip has no such filters,
   # and its unpacker (nsisunz) stops with an error if anything fails. useZip only applies without
-  # differential packages, which UsageMaxx doesn't use (there's no auto-update).
+  # differential packages, which AgentMaxx doesn't use (there's no auto-update).
   differentialPackage: false
   useZip: true
 mac:

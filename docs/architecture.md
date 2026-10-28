@@ -1,15 +1,15 @@
 # Architecture
 
-How UsageMaxx is put together, for people working on the code. For what the app does, see the
+How AgentMaxx is put together, for people working on the code. For what the app does, see the
 [README](../README.md); for what's not built yet, see the [roadmap](roadmap.md).
 
 ## The shape of the app
 
-UsageMaxx is an Electron app with three parts, each built by electron-vite:
+AgentMaxx is an Electron app with three parts, each built by electron-vite:
 
 - **Main process** (`src/main/`, Node). Owns everything that touches the machine: the tray icon,
   the popup window, provider refreshes, files, the network, and settings.
-- **Preload** (`src/preload/index.ts`). Exposes a fixed API as `window.usagemaxx`. It's the only
+- **Preload** (`src/preload/index.ts`). Exposes a fixed API as `window.agentmaxx`. It's the only
   bridge between the two sides.
 - **Renderer** (`src/renderer/`, React). Draws the popup from the state it's sent and sends back
   user intents. It runs sandboxed with no Node access.
@@ -104,35 +104,42 @@ truth (`src/main/loginItem.ts`, packaged builds only). See [settings.md](setting
   meter math is tested outside React. Clicking a headline flips Used/Left everywhere; clicking
   a reset label flips countdown/exact time. The footer shows the next update (click to refresh)
   and an options menu. The popup sizes itself to its content up to 600 px, then scrolls.
-- **IPC** (`src/core/ipc.ts`). The channel names, the `window.usagemaxx` API, and the validation
+- **IPC** (`src/core/ipc.ts`). The channel names, the `window.agentmaxx` API, and the validation
   of every settings change. The main process rejects malformed payloads and opens only
   `http(s)` links. API keys have their own calls: `getKeyStatus`, `saveKey`, `clearKey`, and
   `revealKey`, the only one that returns a key.
 
 ## Where data lives
 
-All under Electron's `userData` folder (`%APPDATA%\UsageMaxx` on Windows):
+All under Electron's `userData` folder (`%APPDATA%\AgentMaxx` on Windows):
 
 | File | Contents |
 |---|---|
 | `settings.json` | Settings |
 | `snapshots.json` | Last good snapshot per provider |
 | `api-keys.json` | Saved API keys, DPAPI-encrypted, base64 |
-| `logs/usagemaxx.log` | App log, rotated past 2 MB. Never contains secrets |
+| `logs/agentmaxx.log` | App log, rotated past 2 MB. Never contains secrets |
+| `Local State` | Chromium's own file; holds the key `safeStorage` uses for `api-keys.json` |
+
+The app was called UsageMaxx before. On the first launch without a `settings.json`,
+`src/main/legacyData.ts` copies `Local State`, `api-keys.json`, `snapshots.json`, and
+`settings.json` from `%APPDATA%\UsageMaxx`, before the app is ready (Chromium reads
+`Local State` right after the main script's top level runs). Keys already saved in AgentMaxx are
+never replaced. Development and demo runs skip this.
 
 Development runs redirect `userData` into the repo's `.cache/` (`scripts/env.sh`). Demo mode
-(`USAGEMAXX_DEMO=1`) uses a separate `demo` subfolder, so sample data never mixes with real data.
+(`AGENTMAXX_DEMO=1`) uses a separate `demo` subfolder, so sample data never mixes with real data.
 
 ## Development hooks
 
 | Variable | Effect |
 |---|---|
-| `USAGEMAXX_DEMO=1` | Demo providers covering every metric shape, all enabled |
-| `USAGEMAXX_USER_DATA=<dir>` | Use `<dir>` as the user-data folder |
-| `USAGEMAXX_SMOKE=1` | Print `usagemaxx:ready` once started; keep the popup open on blur |
-| `USAGEMAXX_SMOKE_SHOW=1` | Open the popup at startup |
-| `USAGEMAXX_THEME=light\|dark` | Force the theme |
-| `USAGEMAXX_SMOKE_VIEW=<view>` | Open a screen at startup: `welcome` (demo mode then skips its pre-enable), `settings`, `providers`, `providers:<id>`, `keys`, `general`, `about` |
+| `AGENTMAXX_DEMO=1` | Demo providers covering every metric shape, all enabled |
+| `AGENTMAXX_USER_DATA=<dir>` | Use `<dir>` as the user-data folder |
+| `AGENTMAXX_SMOKE=1` | Print `agentmaxx:ready` once started; keep the popup open on blur |
+| `AGENTMAXX_SMOKE_SHOW=1` | Open the popup at startup |
+| `AGENTMAXX_THEME=light\|dark` | Force the theme |
+| `AGENTMAXX_SMOKE_VIEW=<view>` | Open a screen at startup: `welcome` (demo mode then skips its pre-enable), `settings`, `providers`, `providers:<id>`, `keys`, `general`, `about` |
 
 `scripts/smoke-launch.mjs` uses these to launch the built or packaged app under Playwright and
 screenshot the popup.
@@ -145,7 +152,7 @@ screenshot the popup.
   x64 and arm64 builds (electron-builder's multi-arch NSIS picks the one that matches the PC),
   per-user, with a choice of install folder, a Start-menu shortcut, and no desktop shortcut. The
   architectures come from the script's `--x64 --arm64` flags, because a command-line target
-  overrides the yml's arch list. It writes `dist/UsageMaxx-Setup-<version>.exe`
+  overrides the yml's arch list. It writes `dist/AgentMaxx-Setup-<version>.exe`
   and the unpacked apps in `dist/win-unpacked/` (x64) and `dist/win-arm64-unpacked/`. The build
   is unsigned, so Windows SmartScreen warns on first run.
 - Each architecture is packed into the installer as a zip (`nsis.useZip`), not 7z: electron-builder's
@@ -160,10 +167,10 @@ screenshot the popup.
   `src/core/ico.ts` through Vite's `runnerImport`. The files are committed; rerun the script
   after changing the mark.
 - CI's `package (windows-latest)` job builds the combined installer on a real Windows runner,
-  launches the unpacked x64 `UsageMaxx.exe` with demo data under Playwright, screenshots the
-  popup, and uploads `usagemaxx-installer` and `smoke-screenshots` as artifacts.
+  launches the unpacked x64 `AgentMaxx.exe` with demo data under Playwright, screenshots the
+  popup, and uploads `agentmaxx-installer` and `smoke-screenshots` as artifacts.
   `package (windows-11-arm)` runs verify natively on GitHub's Windows ARM runner, builds the
   arm64 app, launches it the same way, and uploads `smoke-screenshots-arm64`. Both jobs also run
   the real installer silently (`scripts/install-check.ps1`): every file of the matching unpacked
-  build must arrive, `UsageMaxx.exe` must be the right architecture, and the installed app must
+  build must arrive, `AgentMaxx.exe` must be the right architecture, and the installed app must
   launch.

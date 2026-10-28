@@ -20,16 +20,16 @@ and Total Usage only when Cursor reports one. Older team accounts show a dollar 
 
 ## Where credentials come from
 
-Just be signed in to the Cursor app. UsageMaxx reads the session tokens from Cursor's local
+Just be signed in to the Cursor app. AgentMaxx reads the session tokens from Cursor's local
 state database, `%APPDATA%\Cursor\User\globalStorage\state.vscdb` (the `ItemTable` keys
 `cursorAuth/accessToken` and `cursorAuth/refreshToken`).
 
 The database is opened **read-only** and closed right away. When the access token is about to
-expire, UsageMaxx refreshes it but keeps the new token in memory instead of writing it into the
+expire, AgentMaxx refreshes it but keeps the new token in memory instead of writing it into the
 database of an app that may be running. Upstream does write it back. Cursor renews its own token
 the next time it runs.
 
-With **Read-only Logins** on (Settings → General), UsageMaxx doesn't renew the token at all. A
+With **Read-only Logins** on (Settings → General), AgentMaxx doesn't renew the token at all. A
 token that's about to expire is still used as is; once it has expired, or the API rejects it, the
 card shows "Login expired. Open Cursor to renew it, then refresh."
 

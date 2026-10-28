@@ -56,6 +56,6 @@ export function trayTooltip(state: AppState): string {
     })
     return `${name}: ${readings.join(' · ')}`
   })
-  const text = lines.length > 0 ? lines.join('\n') : 'UsageMaxx'
+  const text = lines.length > 0 ? lines.join('\n') : 'AgentMaxx'
   return text.length <= WINDOWS_TOOLTIP_LIMIT ? text : `${text.slice(0, WINDOWS_TOOLTIP_LIMIT - 1)}…`
 }

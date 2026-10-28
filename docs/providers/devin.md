@@ -24,7 +24,7 @@ Checked in this order; the first that works wins:
    - `%USERPROFILE%\.local\share\devin\credentials.toml`: upstream's macOS/Linux location.
    - `%LOCALAPPDATA%\devin\credentials.toml`: also checked by Pane.
 
-   UsageMaxx reads `windsurf_api_key`, and `api_server_url` when it's an `https://` URL.
+   AgentMaxx reads `windsurf_api_key`, and `api_server_url` when it's an `https://` URL.
 2. **The Devin app's state database**, `%APPDATA%\Devin\User\globalStorage\state.vscdb`
    (`ItemTable` key `windsurfAuthStatus`), opened read-only. **Unconfirmed on Windows**: this is
    the usual location for VS Code-based apps, but it hasn't been checked against a real install.

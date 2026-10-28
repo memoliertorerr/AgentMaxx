@@ -33,7 +33,7 @@ is promised or scheduled.
 
 | Feature | What it involves |
 |---|---|
-| **Spend tiles and Total Spend** (Today, Yesterday, Last 30 Days) | Reading Claude, Codex, Grok, and OpenCode session logs locally, plus model pricing data. This is the largest feature OpenUsage has that UsageMaxx doesn't. |
+| **Spend tiles and Total Spend** (Today, Yesterday, Last 30 Days) | Reading Claude, Codex, Grok, and OpenCode session logs locally, plus model pricing data. This is the largest feature OpenUsage has that AgentMaxx doesn't. |
 | **Logins kept in Windows Credential Manager** | For example, Codex with `cli_auth_credentials_store = keyring`. |
 | **Signed installer and auto-update** | A code-signing certificate and GitHub Releases. Needed before wider distribution. |
 | **Multiple accounts per provider** | One card per account (Claude Swap, Codex Swap, several Codex homes). |

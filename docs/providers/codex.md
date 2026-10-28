@@ -21,7 +21,7 @@ temporarily has only a weekly limit shows just Weekly.
 
 ## Where credentials come from
 
-Sign in once with the Codex CLI (`codex`). UsageMaxx reads `auth.json` from:
+Sign in once with the Codex CLI (`codex`). AgentMaxx reads `auth.json` from:
 
 1. `%CODEX_HOME%`, when you set `CODEX_HOME`
 2. otherwise `%USERPROFILE%\.config\codex`, then `%USERPROFILE%\.codex` (the usual place on
@@ -29,10 +29,10 @@ Sign in once with the Codex CLI (`codex`). UsageMaxx reads `auth.json` from:
 
 Tokens refresh automatically: shortly before the access token's expiry, and once after a
 401/403. The rotated tokens and `last_refresh` are written back to the same `auth.json`, and
-every other field is kept. If the Codex CLI rotated the login on disk in the meantime, UsageMaxx
+every other field is kept. If the Codex CLI rotated the login on disk in the meantime, AgentMaxx
 leaves the CLI's newer login in place.
 
-With **Read-only Logins** on (Settings → General), UsageMaxx never renews the login and never
+With **Read-only Logins** on (Settings → General), AgentMaxx never renews the login and never
 writes the file. A token that's about to expire is still used as is; once it has expired, or the
 API rejects it, the card shows "Login expired. Run `codex` to sign in again, then refresh." and the Codex CLI renews it the next time you run it.
 

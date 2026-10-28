@@ -72,7 +72,7 @@ export class CopilotProvider implements ProviderRuntime {
   private billingGet(ctx: ProviderContext, url: string, token: string): Promise<HttpResponse> {
     return this.get(ctx, url, token, {
       Accept: 'application/vnd.github+json',
-      'User-Agent': 'UsageMaxx',
+      'User-Agent': 'AgentMaxx',
       'X-GitHub-Api-Version': '2022-11-28'
     })
   }

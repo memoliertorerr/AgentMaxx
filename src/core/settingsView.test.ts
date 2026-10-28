@@ -69,8 +69,8 @@ describe('keyStatusText', () => {
   const [openRouter, zai] = API_KEY_PROVIDERS
   it('names where the key comes from', () => {
     expect(keyStatusText(undefined, openRouter!)).toBe('Not set')
-    expect(keyStatusText({ providerId: 'openrouter', status: 'saved' }, openRouter!)).toBe('Saved in UsageMaxx, encrypted')
+    expect(keyStatusText({ providerId: 'openrouter', status: 'saved' }, openRouter!)).toBe('Saved in AgentMaxx, encrypted')
     expect(keyStatusText({ providerId: 'zai', status: 'fromEnvironment', environmentVariable: 'GLM_API_KEY' }, zai!)).toBe('From the GLM_API_KEY environment variable')
-    expect(keyStatusText({ providerId: 'zai', status: 'overrideActive', environmentVariable: 'ZAI_API_KEY' }, zai!)).toBe('Saved in UsageMaxx, used instead of ZAI_API_KEY')
+    expect(keyStatusText({ providerId: 'zai', status: 'overrideActive', environmentVariable: 'ZAI_API_KEY' }, zai!)).toBe('Saved in AgentMaxx, used instead of ZAI_API_KEY')
   })
 })

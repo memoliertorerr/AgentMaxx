@@ -9,23 +9,23 @@ import type { MetricDescriptor } from './types'
 // things; main validates every payload (parseSettingsChange) before acting on it.
 
 export const IPC = {
-  state: 'usagemaxx:state',
-  navigate: 'usagemaxx:navigate',
-  getState: 'usagemaxx:get-state',
-  refresh: 'usagemaxx:refresh',
-  refreshProvider: 'usagemaxx:refresh-provider',
-  updateSettings: 'usagemaxx:update-settings',
-  openExternal: 'usagemaxx:open-external',
-  hidePopup: 'usagemaxx:hide-popup',
-  resizePopup: 'usagemaxx:resize-popup',
-  quit: 'usagemaxx:quit',
-  getKeyStatus: 'usagemaxx:get-key-status',
-  saveKey: 'usagemaxx:save-key',
-  clearKey: 'usagemaxx:clear-key',
-  revealKey: 'usagemaxx:reveal-key',
-  detectProviders: 'usagemaxx:detect-providers',
-  getLaunchAtLogin: 'usagemaxx:get-launch-at-login',
-  setLaunchAtLogin: 'usagemaxx:set-launch-at-login'
+  state: 'agentmaxx:state',
+  navigate: 'agentmaxx:navigate',
+  getState: 'agentmaxx:get-state',
+  refresh: 'agentmaxx:refresh',
+  refreshProvider: 'agentmaxx:refresh-provider',
+  updateSettings: 'agentmaxx:update-settings',
+  openExternal: 'agentmaxx:open-external',
+  hidePopup: 'agentmaxx:hide-popup',
+  resizePopup: 'agentmaxx:resize-popup',
+  quit: 'agentmaxx:quit',
+  getKeyStatus: 'agentmaxx:get-key-status',
+  saveKey: 'agentmaxx:save-key',
+  clearKey: 'agentmaxx:clear-key',
+  revealKey: 'agentmaxx:reveal-key',
+  detectProviders: 'agentmaxx:detect-providers',
+  getLaunchAtLogin: 'agentmaxx:get-launch-at-login',
+  setLaunchAtLogin: 'agentmaxx:set-launch-at-login'
 } as const
 
 export type SettingsChange =
@@ -65,8 +65,8 @@ export type SettingsTab = 'providers' | 'keys' | 'general' | 'about'
  */
 export type View = 'dashboard' | 'settings' | SettingsTab | `providers:${string}`
 
-/** What the preload script exposes as `window.usagemaxx`. */
-export interface UsageMaxxApi {
+/** What the preload script exposes as `window.agentmaxx`. */
+export interface AgentMaxxApi {
   getState(): Promise<AppState>
   onState(listener: (state: AppState) => void): () => void
   onNavigate(listener: (view: View) => void): () => void

@@ -16,7 +16,7 @@ function authHeaders(accessToken: string): Record<string, string> {
     Authorization: `Bearer ${accessToken.trim()}`,
     'X-XAI-Token-Auth': TOKEN_AUTH_HEADER,
     Accept: 'application/json',
-    'User-Agent': 'UsageMaxx'
+    'User-Agent': 'AgentMaxx'
   }
 }
 

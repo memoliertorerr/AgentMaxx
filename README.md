@@ -1,15 +1,15 @@
-# UsageMaxx — your AI coding limits in the Windows tray
+# AgentMaxx — your AI coding limits in the Windows tray
 
-UsageMaxx sits in the Windows notification area and shows how much of your AI coding
-subscriptions you've used: Claude, Codex, Cursor, GitHub Copilot, and more. Click the icon for a
-dashboard of meters, reset countdowns, and pace warnings; pin up to two meters to draw them right
-on the tray icon.
+AgentMaxx (formerly UsageMaxx) sits in the Windows notification area and shows how much of your
+AI coding subscriptions you've used: Claude, Codex, Cursor, GitHub Copilot, and more. Click the
+icon for a dashboard of meters, reset countdowns, and pace warnings; pin up to two meters to draw
+them right on the tray icon.
 
-> **Unofficial.** UsageMaxx is an independent Windows port of
+> **Unofficial.** AgentMaxx is an independent Windows port of
 > [OpenUsage](https://github.com/robinebers/openusage) by Robin Ebers, a macOS menu-bar app (MIT).
 > It is not affiliated with or endorsed by OpenUsage or any of the providers it reads.
 
-![The UsageMaxx popup on Windows, showing demo data for Claude, Codex, and Cursor](docs/assets/screenshot.png)
+![The AgentMaxx popup on Windows, showing demo data for Claude, Codex, and Cursor](docs/assets/screenshot.png)
 
 *The packaged app on a Windows CI runner, with demo data.*
 
@@ -40,17 +40,17 @@ Version 0.1: unofficial, unsigned, and new.
   API responses.
 - **Not yet checked by hand:** the other eight providers with live accounts, saving API keys, Read-only
   Logins, and uninstalling. If you use any of them, reports are welcome in
-  [Issues](https://github.com/memoliertorerr/UsageMaxx/issues).
+  [Issues](https://github.com/memoliertorerr/AgentMaxx/issues).
 
 ## Installation guide
 
-UsageMaxx runs on Windows 10 and 11, on Intel/AMD PCs and on Windows on ARM (Snapdragon laptops,
+AgentMaxx runs on Windows 10 and 11, on Intel/AMD PCs and on Windows on ARM (Snapdragon laptops,
 or Windows 11 in Parallels on an Apple Silicon Mac). One installer covers both and installs the
 native build for your PC.
 
 ### 1. Sign in to your AI tools first
 
-UsageMaxx shows usage from the logins your tools already saved on this PC; it never asks for a
+AgentMaxx shows usage from the logins your tools already saved on this PC; it never asks for a
 password. Sign in **before** the first launch, so the welcome screen finds them. You only need the
 tools you actually use:
 
@@ -84,26 +84,26 @@ There are no releases yet; every push builds the installer in CI.
 
 1. Open this repository's **Actions** tab, choose the **CI** workflow, and open the latest
    successful run on `main`.
-2. Under **Artifacts**, download **usagemaxx-installer** (about 300 MB; GitHub asks you to sign
+2. Under **Artifacts**, download **agentmaxx-installer** (about 300 MB; GitHub asks you to sign
    in, and artifacts expire after 90 days).
-3. Unzip it to get `UsageMaxx-Setup-0.1.0.exe`. Put it in a folder on your PC's own disk, such as
+3. Unzip it to get `AgentMaxx-Setup-0.1.0.exe`. Put it in a folder on your PC's own disk, such as
    `C:\Install`.
 
 With the GitHub CLI, the same download is one command (`<run-id>` is the run's number in its URL):
 
 ```powershell
-gh run download <run-id> --repo memoliertorerr/UsageMaxx --name usagemaxx-installer
+gh run download <run-id> --repo memoliertorerr/AgentMaxx --name agentmaxx-installer
 ```
 
 ### 3. Run the installer
 
-1. Double-click `UsageMaxx-Setup-0.1.0.exe`. It isn't code-signed yet, so Windows SmartScreen
+1. Double-click `AgentMaxx-Setup-0.1.0.exe`. It isn't code-signed yet, so Windows SmartScreen
    shows "Windows protected your PC": choose **More info → Run anyway**.
 2. If **Smart App Control** blocks it instead, with no "Run anyway", Windows only allows signed
    apps on this PC. Turning Smart App Control off is a Windows security setting (Windows Security →
    App & browser control), so it's your call.
 3. The installer is per-user (no admin rights), lets you choose the folder (default
-   `%LOCALAPPDATA%\Programs\UsageMaxx`), adds a Start-menu shortcut, and starts UsageMaxx when it
+   `%LOCALAPPDATA%\Programs\AgentMaxx`), adds a Start-menu shortcut, and starts AgentMaxx when it
    finishes.
 
 ### 4. First launch
@@ -111,14 +111,14 @@ gh run download <run-id> --repo memoliertorerr/UsageMaxx --name usagemaxx-instal
 1. A welcome screen lists the tools signed in on this PC, already ticked. Choose **Continue**.
    (**Choose Later** starts with nothing on; add providers in Settings → Providers.)
 2. **Show the icon on the taskbar.** Windows 11 hides new tray icons in the overflow (**^**) menu.
-   Drag the UsageMaxx icon from there onto the taskbar, or turn it on in **Settings →
+   Drag the AgentMaxx icon from there onto the taskbar, or turn it on in **Settings →
    Personalization → Taskbar → Other system tray icons**. (Windows 10: **Settings →
    Personalization → Taskbar → Select which icons appear on the taskbar**.)
 3. Left-click the icon for the dashboard; right-click for Refresh Now, Settings, and Quit.
    **Launch at Login** is in Settings → General.
 
 **On Windows on ARM**, you can confirm it runs natively: in Task Manager → **Details**, right-click
-a column header → **Select columns** → **Architecture**. UsageMaxx shows **ARM64**.
+a column header → **Select columns** → **Architecture**. AgentMaxx shows **ARM64**.
 
 **In Parallels on a Mac**, use Window or Full Screen mode, not Coherence: in Coherence, Parallels
 moves Windows' tray icons into the Mac menu bar. Run the installer from a folder on the Windows
@@ -127,16 +127,20 @@ disk, not a shared Mac folder (`\\Mac\...`).
 ### Updating and uninstalling
 
 - **Update** by running a newer installer over the old one. Your settings, saved API keys, and cache
-  in `%APPDATA%\UsageMaxx` are kept. (There's no auto-update.)
-- **Uninstall** from **Settings → Apps → Installed apps → UsageMaxx**. The data folder
-  `%APPDATA%\UsageMaxx` stays until you delete it.
+  in `%APPDATA%\AgentMaxx` are kept. (There's no auto-update.)
+- **Uninstall** from **Settings → Apps → Installed apps → AgentMaxx**. The data folder
+  `%APPDATA%\AgentMaxx` stays until you delete it.
+- **Coming from UsageMaxx** (this app's name until October 2026): in UsageMaxx, turn off **Launch at
+  Login** (Settings → General), then uninstall UsageMaxx and install AgentMaxx. On its first launch,
+  AgentMaxx copies your settings, saved API keys, and last readings from `%APPDATA%\UsageMaxx`.
+  Once everything looks right, you can delete that old folder.
 
 ### If something's off
 
 - **A card says "Not logged in"**: sign in with that tool (step 1), then press F5 in the popup.
-- **No icon after installing**: look in the overflow (**^**) menu, or start UsageMaxx from the
+- **No icon after installing**: look in the overflow (**^**) menu, or start AgentMaxx from the
   Start menu.
-- **"Missing Shortcut" right after installing, and no `UsageMaxx.exe` in the install folder**: an
+- **"Missing Shortcut" right after installing, and no `AgentMaxx.exe` in the install folder**: an
   early ARM build had this bug (fixed on 2026-10-16). Uninstall, then install a current build.
 - Each provider's page under [docs/providers](docs/README.md) has its own troubleshooting.
 
@@ -161,25 +165,25 @@ built yet.
 
 ## Privacy
 
-- **Your logins stay on your PC.** UsageMaxx reads them where your tools stored them and sends
+- **Your logins stay on your PC.** AgentMaxx reads them where your tools stored them and sends
   each token only to that provider's own servers.
 - **No telemetry, analytics, or update checks.** The only network requests are the providers'
   usage APIs (and their token endpoints, when a login is renewed).
 - **API keys are encrypted** with Windows DPAPI (Electron `safeStorage`) in
-  `%APPDATA%\UsageMaxx\api-keys.json`, readable only by your Windows account. If encryption isn't
+  `%APPDATA%\AgentMaxx\api-keys.json`, readable only by your Windows account. If encryption isn't
   available, the key isn't saved at all.
 - **It writes very little.** Settings, a cache of the last numbers, and a log go to
-  `%APPDATA%\UsageMaxx`; the log never contains tokens or keys. Other apps' files are only written
+  `%APPDATA%\AgentMaxx`; the log never contains tokens or keys. Other apps' files are only written
   when a Claude, Codex, or Grok login is renewed, and then only the token fields change. Cursor's
   database is never written. With **Read-only Logins** on, nothing is renewed or written.
 
 ## Risks and terms
 
-UsageMaxx is unofficial and not affiliated with OpenUsage or with any provider it reads.
+AgentMaxx is unofficial and not affiliated with OpenUsage or with any provider it reads.
 
 - **How it reads usage.** Claude, Codex, Cursor, Copilot, Z.ai, Grok, and Devin are read through
   undocumented, internal endpoints, using the login that provider's own CLI or app stored.
-  UsageMaxx identifies itself the way those clients do and, unless **Read-only Logins** is on,
+  AgentMaxx identifies itself the way those clients do and, unless **Read-only Logins** is on,
   renews expired logins with their client IDs. OpenRouter, Ollama Cloud, and OpenCode Go are read
   through documented APIs.
 - **Provider terms may restrict this.**
@@ -193,7 +197,7 @@ UsageMaxx is unofficial and not affiliated with OpenUsage or with any provider i
     apply to how its services are used.
   - No provider has approved this app, and any of these endpoints can change or be blocked at any
     time.
-- **What limits the risk.** UsageMaxx only reads usage; it never sends AI requests on your
+- **What limits the risk.** AgentMaxx only reads usage; it never sends AI requests on your
   subscription. It refreshes each provider about once every 5 minutes (a few small requests each),
   backs off when rate-limited (Claude waits out Anthropic's `Retry-After`; the others wait for the
   next 5-minute refresh), sends tokens only to the provider's own servers, and never writes
@@ -209,7 +213,7 @@ You need Node 24 (22 or later works) and npm. On Windows:
 
 ```powershell
 npm ci
-npm run dev        # run the tray app; set USAGEMAXX_DEMO=1 for demo data
+npm run dev        # run the tray app; set AGENTMAXX_DEMO=1 for demo data
 npm run verify     # typecheck + unit tests
 npm run dist:win   # build the installer into dist\
 ```
@@ -221,7 +225,7 @@ provider docs.
 
 ## Relationship to OpenUsage
 
-UsageMaxx is an unofficial port. OpenUsage (MIT) is a native Swift app for macOS; UsageMaxx
+AgentMaxx is an unofficial port. OpenUsage (MIT) is a native Swift app for macOS; AgentMaxx
 reimplements its provider behavior (credential locations, endpoints, headers, field names, and edge
 cases) in TypeScript on Electron for Windows. The original's copyright and license are reproduced
 in [NOTICE](NOTICE).

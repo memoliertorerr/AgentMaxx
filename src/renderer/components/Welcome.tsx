@@ -33,7 +33,7 @@ export function Welcome({ state, complete }: WelcomeProps): React.JSX.Element {
 
   useEffect(() => {
     let active = true
-    void window.usagemaxx.detectProviders().then((result) => {
+    void window.agentmaxx.detectProviders().then((result) => {
       if (!active) return
       setDetected(result)
       setSelected(new Set(welcomeChoices(state.providers, result).found.map((info) => info.id)))
@@ -60,7 +60,7 @@ export function Welcome({ state, complete }: WelcomeProps): React.JSX.Element {
     <div className="welcome">
       <div className="welcome-header">
         <AppMark size={36} />
-        <h1>Welcome to UsageMaxx</h1>
+        <h1>Welcome to AgentMaxx</h1>
         <p>Choose the AI tools whose limits you want in the tray. You can change this later in Settings.</p>
       </div>
 

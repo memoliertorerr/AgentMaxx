@@ -1,6 +1,6 @@
 # Settings and First Run
 
-How UsageMaxx decides which providers are on, and what each Settings screen does. Behavior
+How AgentMaxx decides which providers are on, and what each Settings screen does. Behavior
 follows OpenUsage's [settings](https://github.com/robinebers/openusage/blob/main/docs/settings.md)
 and [provider enablement](https://github.com/robinebers/openusage/blob/main/docs/provider-enablement.md)
 docs, adapted to a Windows tray popup.
@@ -49,10 +49,10 @@ upstream's default layout. Providers can't be reordered (drag-to-reorder is Late
 OpenRouter and Z.ai need a key you supply (see [providers/openrouter.md](providers/openrouter.md)
 and [providers/zai.md](providers/zai.md)). For each:
 
-- **Status**: Not set, from an environment variable (named), saved in UsageMaxx, or saved and
+- **Status**: Not set, from an environment variable (named), saved in AgentMaxx, or saved and
   used instead of an environment variable.
 - **Save** encrypts the pasted key with Windows DPAPI (Electron `safeStorage`) and stores it in
-  `%APPDATA%\UsageMaxx\api-keys.json`. If encryption isn't available, nothing is saved; there's no
+  `%APPDATA%\AgentMaxx\api-keys.json`. If encryption isn't available, nothing is saved; there's no
   plaintext fallback. The provider refreshes at once if it's on.
 - **Reveal** shows the key in use (saved, else the environment's) until you hide it or leave the
   screen. It's the only time a key reaches the popup.
@@ -63,7 +63,7 @@ and [providers/zai.md](providers/zai.md)). For each:
 
 | Setting | Options | What it does |
 |---|---|---|
-| Launch at Login | on/off | Registers UsageMaxx with Windows to start when you sign in. Windows' own list is the source of truth, so nothing is stored in settings. Disabled in development runs, which must not register themselves |
+| Launch at Login | on/off | Registers AgentMaxx with Windows to start when you sign in. Windows' own list is the source of truth, so nothing is stored in settings. Disabled in development runs, which must not register themselves |
 | Show Usage As | Used / Left | "48% used" or "52% left"; same as clicking a meter's headline |
 | Reset Times | Countdown / Exact Time | "Resets in 3h 25m" or the clock time; same as clicking a reset label |
 | Time Format | Auto / 12-Hour / 24-Hour | How exact times read; Auto follows Windows |
@@ -78,7 +78,7 @@ The version, links to this repository, its issues, and the original project, and
 
 ## Where settings live
 
-`%APPDATA%\UsageMaxx\settings.json`, parsed tolerantly: unknown keys are dropped, missing ones get
+`%APPDATA%\AgentMaxx\settings.json`, parsed tolerantly: unknown keys are dropped, missing ones get
 defaults, and a corrupt file is replaced by defaults instead of crashing the app.
 
 ## Not built

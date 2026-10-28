@@ -7,6 +7,7 @@ import type { Theme } from '../core/settings'
 import { ApiKeyVault, type KeyCipher } from './apiKeys'
 import { createContextFactory } from './context'
 import { registerIpc } from './ipc'
+import { LEGACY_FOLDER, migrateLegacyUserData } from './legacyData'
 import { createLoginItem } from './loginItem'
 import { createFileLogger } from './log'
 import { createWindowsSecretStore } from './windowsCredentials'
@@ -16,20 +17,24 @@ import { AppStore } from './store'
 
 // Composition root: builds the providers, the store, the popup, and the tray, and connects them.
 
-const demo = process.env.USAGEMAXX_DEMO === '1'
-const smoke = process.env.USAGEMAXX_SMOKE === '1'
-const smokeShow = process.env.USAGEMAXX_SMOKE_SHOW === '1'
-const forcedTheme = process.env.USAGEMAXX_THEME
-const smokeView = process.env.USAGEMAXX_SMOKE_VIEW
+const demo = process.env.AGENTMAXX_DEMO === '1'
+const smoke = process.env.AGENTMAXX_SMOKE === '1'
+const smokeShow = process.env.AGENTMAXX_SMOKE_SHOW === '1'
+const forcedTheme = process.env.AGENTMAXX_THEME
+const smokeView = process.env.AGENTMAXX_SMOKE_VIEW
 
 // Development runs keep the app's data inside the repo (scripts/env.sh sets this), so nothing is
 // written to the user's real profile while building. Demo data never mixes with real data.
-const userDataOverride = process.env.USAGEMAXX_USER_DATA
+const userDataOverride = process.env.AGENTMAXX_USER_DATA
 if (userDataOverride) {
   app.setPath('userData', userDataOverride)
   app.setPath('crashDumps', join(userDataOverride, 'crashes'))
   app.setAppLogsPath(join(userDataOverride, 'logs'))
 }
+// Bring settings and saved keys over from the UsageMaxx data folder. This must run before the app
+// is ready: Chromium reads "Local State" (the key store for saved API keys) right after this script.
+const legacyMigration =
+  userDataOverride || demo ? undefined : migrateLegacyUserData(join(app.getPath('appData'), LEGACY_FOLDER), app.getPath('userData'))
 if (demo) app.setPath('userData', join(app.getPath('userData'), 'demo'))
 
 const BACKGROUND = { light: '#F7F7F8', dark: '#1F1F22' } as const
@@ -55,7 +60,9 @@ async function main(): Promise<void> {
   app.dock?.hide()
 
   const log = createFileLogger(app.getPath('logs'), { echo: !app.isPackaged })
-  log.info('app', `UsageMaxx ${app.getVersion()} starting on ${process.platform} (demo: ${demo})`)
+  log.info('app', `AgentMaxx ${app.getVersion()} starting on ${process.platform} (demo: ${demo})`)
+  if (legacyMigration?.copied.length) log.info('app', `Copied ${legacyMigration.copied.join(', ')} from the UsageMaxx data folder`)
+  if (legacyMigration?.error) log.warn('app', `Couldn't copy the UsageMaxx data folder: ${legacyMigration.error}`)
 
   const providers = createProviders({ demo })
   let readOnlyLogins: () => boolean | undefined = () => undefined
@@ -126,7 +133,7 @@ async function main(): Promise<void> {
   // Pace colors and countdowns move with the clock between refreshes.
   setInterval(() => tray.update(store.getState(), new Date()), TRAY_RETICK_MS)
 
-  if (smoke) console.log('usagemaxx:ready')
+  if (smoke) console.log('agentmaxx:ready')
   if (smokeShow) popup.show(tray.bounds)
   if (smokeView && smokeView !== 'welcome') popup.window.webContents.send(IPC.navigate, smokeView)
 }
@@ -135,7 +142,7 @@ if (!app.requestSingleInstanceLock()) {
   app.quit()
 } else {
   main().catch((error: unknown) => {
-    console.error('UsageMaxx failed to start:', error)
+    console.error('AgentMaxx failed to start:', error)
     app.exit(1)
   })
 }

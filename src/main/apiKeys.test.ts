@@ -3,7 +3,7 @@ import { MemoryFileSystem, silentLogger } from '../../tests/helpers/fakes'
 import type { Env } from '../core/paths'
 import { ApiKeyVault, type KeyCipher } from './apiKeys'
 
-const FILE = 'C:\\Users\\ada\\AppData\\Roaming\\UsageMaxx\\api-keys.json'
+const FILE = 'C:\\Users\\ada\\AppData\\Roaming\\AgentMaxx\\api-keys.json'
 const KEY = 'sk-or-v1-0123456789abcdef'
 
 /** Reversible stand-in for DPAPI: the plaintext never appears in its output. */

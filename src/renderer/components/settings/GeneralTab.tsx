@@ -28,19 +28,19 @@ export function GeneralTab({ settings, change, notify }: GeneralTabProps): React
   const [login, setLogin] = useState<LaunchAtLogin | undefined>(undefined)
 
   useEffect(() => {
-    void window.usagemaxx.getLaunchAtLogin().then(setLogin)
+    void window.agentmaxx.getLaunchAtLogin().then(setLogin)
   }, [])
 
   const setLaunchAtLogin = async (enabled: boolean) => {
-    const result = await window.usagemaxx.setLaunchAtLogin(enabled)
+    const result = await window.agentmaxx.setLaunchAtLogin(enabled)
     if (!result.ok) notify(result.reason)
-    setLogin(await window.usagemaxx.getLaunchAtLogin())
+    setLogin(await window.agentmaxx.getLaunchAtLogin())
   }
 
   return (
     <div className="settings-section">
       <div className="settings-group">
-        <Row title="Launch at Login" hint={login && !login.supported ? 'Works in the installed app.' : 'Start UsageMaxx when you sign in to Windows.'}>
+        <Row title="Launch at Login" hint={login && !login.supported ? 'Works in the installed app.' : 'Start AgentMaxx when you sign in to Windows.'}>
           <Switch checked={login?.enabled ?? false} disabled={!login?.supported} label="Launch at login" onChange={(enabled) => void setLaunchAtLogin(enabled)} />
         </Row>
       </div>

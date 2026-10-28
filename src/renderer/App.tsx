@@ -20,7 +20,7 @@ export function App(): React.JSX.Element {
   const footer = useRef<HTMLDivElement>(null)
 
   const change = useCallback(async (settingsChange: SettingsChange) => {
-    const result = await window.usagemaxx.updateSettings(settingsChange)
+    const result = await window.agentmaxx.updateSettings(settingsChange)
     if (!result.ok) setToast(result.reason)
   }, [])
 
@@ -40,10 +40,10 @@ export function App(): React.JSX.Element {
         // Back out one level: a provider's metrics → the list → the dashboard → hide.
         if (route.screen === 'settings' && route.providerId) setRoute({ screen: 'settings', tab: 'providers' })
         else if (route.screen === 'settings') setRoute({ screen: 'dashboard' })
-        else window.usagemaxx.hidePopup()
+        else window.agentmaxx.hidePopup()
       } else if (event.key === 'F5') {
         event.preventDefault()
-        void window.usagemaxx.refresh()
+        void window.agentmaxx.refresh()
       }
     }
     window.addEventListener('keydown', onKey)
@@ -56,7 +56,7 @@ export function App(): React.JSX.Element {
     const footerHeight = footer.current?.offsetHeight ?? 0
     // Round up: scrollHeight is rounded, and a fractional overflow would still show a scrollbar.
     const contentHeight = Math.ceil(Math.max(content.current.scrollHeight, content.current.getBoundingClientRect().height))
-    window.usagemaxx.resizePopup(contentHeight + footerHeight + 2)
+    window.agentmaxx.resizePopup(contentHeight + footerHeight + 2)
   }, [])
 
   useLayoutEffect(reportHeight)

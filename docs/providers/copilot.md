@@ -58,4 +58,4 @@ gh auth login
 ## Not ported
 
 - the macOS Keychain lookup (Credential Manager replaces it)
-- remembering the billing org across restarts (UsageMaxx re-discovers it once per launch)
+- remembering the billing org across restarts (AgentMaxx re-discovers it once per launch)

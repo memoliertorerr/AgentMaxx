@@ -17,15 +17,15 @@ rather than showing a monthly figure under a weekly label.
 
 ## Where credentials come from
 
-Sign in once with the Grok CLI (`grok login`). UsageMaxx reads the same file:
+Sign in once with the Grok CLI (`grok login`). AgentMaxx reads the same file:
 `%USERPROFILE%\.grok\auth.json`. Each account in it is tried in order.
 
 Access tokens are refreshed before they expire (within five minutes), and the rotated token is
 written back to `auth.json`, changing only that account's `key`, `refresh_token`, `id_token`, and
 `expires_at`. Every other field and account is kept. If the Grok CLI logs in again while
-UsageMaxx is refreshing, the CLI's newer login wins and nothing is written.
+AgentMaxx is refreshing, the CLI's newer login wins and nothing is written.
 
-With **Read-only Logins** on (Settings → General), UsageMaxx never renews the login and never
+With **Read-only Logins** on (Settings → General), AgentMaxx never renews the login and never
 writes the file. A token that's about to expire is still used as is; once it has expired, or the
 API rejects it, the card shows "Login expired. Run `grok login` to sign in again, then refresh." and the Grok CLI renews it when you sign in again.
 

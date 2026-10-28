@@ -8,11 +8,11 @@ import type { Logger, SecretStore } from '../core/runtime'
 
 const SCRIPT = String.raw`
 $ErrorActionPreference = 'Stop'
-$prefix = $env:USAGEMAXX_CRED_PREFIX
+$prefix = $env:AGENTMAXX_CRED_PREFIX
 Add-Type -TypeDefinition @"
 using System;
 using System.Runtime.InteropServices;
-public static class UsageMaxxCredentials {
+public static class AgentMaxxCredentials {
   [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
   public struct CREDENTIAL {
     public int Flags;
@@ -36,11 +36,11 @@ public static class UsageMaxxCredentials {
 "@
 $count = 0
 $list = [IntPtr]::Zero
-if ([UsageMaxxCredentials]::CredEnumerateW($prefix + '*', 0, [ref]$count, [ref]$list)) {
+if ([AgentMaxxCredentials]::CredEnumerateW($prefix + '*', 0, [ref]$count, [ref]$list)) {
   try {
     for ($i = 0; $i -lt $count; $i++) {
       $pointer = [Runtime.InteropServices.Marshal]::ReadIntPtr($list, $i * [IntPtr]::Size)
-      $credential = [Runtime.InteropServices.Marshal]::PtrToStructure($pointer, [type][UsageMaxxCredentials+CREDENTIAL])
+      $credential = [Runtime.InteropServices.Marshal]::PtrToStructure($pointer, [type][AgentMaxxCredentials+CREDENTIAL])
       $bytes = New-Object byte[] $credential.CredentialBlobSize
       if ($credential.CredentialBlobSize -gt 0) {
         [Runtime.InteropServices.Marshal]::Copy($credential.CredentialBlob, $bytes, 0, $credential.CredentialBlobSize)
@@ -48,7 +48,7 @@ if ([UsageMaxxCredentials]::CredEnumerateW($prefix + '*', 0, [ref]$count, [ref]$
       [pscustomobject]@{ target = $credential.TargetName; user = $credential.UserName; blob = [Convert]::ToBase64String($bytes) } | ConvertTo-Json -Compress
     }
   } finally {
-    [UsageMaxxCredentials]::CredFree($list)
+    [AgentMaxxCredentials]::CredFree($list)
   }
 }
 `
@@ -71,7 +71,7 @@ export function createWindowsSecretStore(log: Logger): SecretStore {
             timeout: TIMEOUT_MS,
             windowsHide: true,
             maxBuffer: 1024 * 1024,
-            env: { ...process.env, USAGEMAXX_CRED_PREFIX: prefix }
+            env: { ...process.env, AGENTMAXX_CRED_PREFIX: prefix }
           },
           (error, stdout) => {
             if (error) {

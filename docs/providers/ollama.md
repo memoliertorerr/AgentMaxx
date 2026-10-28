@@ -20,13 +20,13 @@ limits; only cloud models do.
 ## Turning it on
 
 **Ollama never switches itself on.** Ollama creates its key the first time it runs, whether or
-not you ever sign in to Ollama Cloud, so the key can't tell UsageMaxx that Cloud is set up. Turn
+not you ever sign in to Ollama Cloud, so the key can't tell AgentMaxx that Cloud is set up. Turn
 Ollama on in Settings → Providers when you use Ollama Cloud.
 
 ## Where credentials come from
 
 Nothing to paste. Ollama writes a signing key to `%USERPROFILE%\.ollama\id_ed25519` on first run,
-and `ollama signin` links it to your ollama.com account. UsageMaxx reads the key and signs each
+and `ollama signin` links it to your ollama.com account. AgentMaxx reads the key and signs each
 request with it exactly as the Ollama CLI does. The key never leaves your PC; only the signature
 does.
 
@@ -55,7 +55,7 @@ ollama signin
 
 Each request carries `Authorization: <base64 SSH public key>:<base64 signature>`, signing
 `<METHOD>,<request-uri>` where the URI includes a `ts` unix-seconds parameter, so a captured header
-can't be replayed later. Node can't load OpenSSH keys, so UsageMaxx parses the `openssh-key-v1`
+can't be replayed later. Node can't load OpenSSH keys, so AgentMaxx parses the `openssh-key-v1`
 container itself, checks that the public half matches the private seed, and signs with Node's
 built-in ed25519. Ollama allows 10 balance requests a minute.
 
