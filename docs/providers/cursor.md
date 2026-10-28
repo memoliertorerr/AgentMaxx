@@ -62,6 +62,6 @@ Optional lookups never fail the card. Failures are logged with fixed, credential
 ## Not ported
 
 - Spend history, the usage trend, and Today / Yesterday / Last 30 Days (from Cursor's usage
-  events; see the build plan's **Later**)
+  events; see the [roadmap](../roadmap.md))
 - writing a refreshed token back into Cursor's database (deliberate, see above)
 - the macOS Keychain fallback (doesn't apply on Windows)

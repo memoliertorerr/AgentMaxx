@@ -48,8 +48,7 @@ matter.
 ## Not ported
 
 - the Today / Yesterday / Last 30 Days spend tiles and usage trend from OpenCode's SQLite logs, and
-  the Codex attribution of OpenCode's ChatGPT logins (Later: local spend tiles)
+  the Codex attribution of OpenCode's ChatGPT logins (see the [roadmap](../roadmap.md))
 - OpenCode 2's credential tables in `opencode*.db`. UsageMaxx reads OpenCode 1's `auth.json`
   only. OpenCode 2 imports that file and keeps it, so it still holds the key; but a logout or new
-  login made in OpenCode 2 isn't seen until this is ported (see Deferred follow-ups in
-  `docs/BUILD_PLAN.md`)
+  login made in OpenCode 2 isn't seen until this is ported (see the [roadmap](../roadmap.md))

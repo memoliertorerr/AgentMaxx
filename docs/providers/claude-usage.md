@@ -70,4 +70,4 @@ These exist in OpenUsage for macOS but not here:
 - Claude Swap accounts and per-organization cards
 - the Rate Limit Resets row
 - local spend tiles (Today / Yesterday / Last 30 Days) and the usage trend, which come from
-  Claude Code's session logs (see the build plan's **Later**)
+  Claude Code's session logs (see the [roadmap](../roadmap.md))
