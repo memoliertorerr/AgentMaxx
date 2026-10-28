@@ -1,8 +1,7 @@
 # Architecture
 
 How UsageMaxx is put together, for people working on the code. For what the app does, see the
-[README](../README.md); for the build plan and what's deliberately not built, see
-[BUILD_PLAN.md](BUILD_PLAN.md).
+[README](../README.md); for what's not built yet, see the [roadmap](roadmap.md).
 
 ## The shape of the app
 
