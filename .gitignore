@@ -10,3 +10,6 @@ test-results/
 
 # Local agent instructions: kept on this machine, never committed (2026-10-16).
 CLAUDE.md
+
+# Internal build plan: kept on this machine, never committed (2026-10-28).
+docs/BUILD_PLAN.md

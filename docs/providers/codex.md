@@ -64,5 +64,5 @@ These exist in OpenUsage for macOS but not here:
 - the macOS Keychain login, plus Codex Swap (`xswap`), pi, and sibling `~/.codex-*` homes
   (multi-account cards)
 - the per-credit expiry timeline and claiming a reset credit
-- local spend tiles and the usage trend from Codex session logs (see the build plan's **Later**)
+- local spend tiles and the usage trend from Codex session logs (see the [roadmap](../roadmap.md))
 - a Codex login kept in Windows Credential Manager (`cli_auth_credentials_store = keyring`)

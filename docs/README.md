@@ -25,10 +25,10 @@ The [README](../README.md) also covers installing, privacy, and **Risks and term
 | Doc | What's in it |
 |---|---|
 | [architecture.md](architecture.md) | Process model, provider pipeline, API keys, refreshing, state, first run and Settings, tray and popup, data locations, dev hooks, build and packaging |
-| [BUILD_PLAN.md](BUILD_PLAN.md) | The step-by-step build plan, progress tracker, implementation notes, deferred follow-ups, landmines, and what's planned for later |
-| [upstream.md](upstream.md) | Why this isn't an upstream PR, how to contribute provider fixes back, and a draft issue |
+| [roadmap.md](roadmap.md) | What 0.1 includes, known gaps, and possible next steps |
+| [upstream.md](upstream.md) | Why this isn't an upstream PR, and how to send provider fixes back |
 
 ## Assets
 
 - [assets/screenshot.png](assets/screenshot.png): the popup with demo data, from the packaged app on
-  a Windows CI runner (UM11). Safe to publish; it contains no real account data.
+  a Windows CI runner. It contains no real account data.
