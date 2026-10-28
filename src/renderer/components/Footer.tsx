@@ -47,7 +47,7 @@ export function Footer({ state, now, onOpenSettings }: FooterProps): React.JSX.E
             <button role="menuitem" onClick={run(() => void window.usagemaxx.refresh())}>
               Refresh Now
             </button>
-            <button role="menuitem" onClick={run(() => void window.usagemaxx.openExternal('https://github.com/memoliertorerr/OpenUsageMaxx/issues'))}>
+            <button role="menuitem" onClick={run(() => void window.usagemaxx.openExternal('https://github.com/memoliertorerr/UsageMaxx/issues'))}>
               Report an Issue…
             </button>
             <hr />

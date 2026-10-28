@@ -1,6 +1,6 @@
 import { AppMark } from '../AppMark'
 
-const REPO_URL = 'https://github.com/memoliertorerr/OpenUsageMaxx'
+const REPO_URL = 'https://github.com/memoliertorerr/UsageMaxx'
 const UPSTREAM_URL = 'https://github.com/robinebers/openusage'
 
 export function AboutTab({ version }: { version: string }): React.JSX.Element {

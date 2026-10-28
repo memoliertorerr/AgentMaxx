@@ -40,7 +40,7 @@ Version 0.1: unofficial, unsigned, and new.
   API responses.
 - **Not yet checked by hand:** the other eight providers with live accounts, saving API keys, Read-only
   Logins, and uninstalling. If you use any of them, reports are welcome in
-  [Issues](https://github.com/memoliertorerr/OpenUsageMaxx/issues).
+  [Issues](https://github.com/memoliertorerr/UsageMaxx/issues).
 
 ## Installation guide
 
@@ -92,7 +92,7 @@ There are no releases yet; every push builds the installer in CI.
 With the GitHub CLI, the same download is one command (`<run-id>` is the run's number in its URL):
 
 ```powershell
-gh run download <run-id> --repo memoliertorerr/OpenUsageMaxx --name usagemaxx-installer
+gh run download <run-id> --repo memoliertorerr/UsageMaxx --name usagemaxx-installer
 ```
 
 ### 3. Run the installer

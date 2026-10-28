@@ -6,7 +6,7 @@
   "private": true,
   "license": "MIT",
   "author": "Mehmet Ali Ertorer",
-  "homepage": "https://github.com/memoliertorerr/OpenUsageMaxx",
+  "homepage": "https://github.com/memoliertorerr/UsageMaxx",
   "main": "out/main/index.js",
   "engines": {
     "node": ">=22"
