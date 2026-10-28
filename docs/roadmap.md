@@ -34,6 +34,7 @@ is promised or scheduled.
 | Feature | What it involves |
 |---|---|
 | **Spend tiles and Total Spend** (Today, Yesterday, Last 30 Days) | Reading Claude, Codex, Grok, and OpenCode session logs locally, plus model pricing data. This is the largest feature OpenUsage has that AgentMaxx doesn't. |
+| **Usage history and custom periods** (for example 1 or 2 weeks, 3 months, a year) | Quota windows (5-hour, weekly, monthly) are set by each provider and are shown as reported. Longer or custom periods need history AgentMaxx keeps itself: a daily record for each provider, growing from install onward. Some past usage can be filled in: Codex keeps its session files, and Cursor's usage events can be fetched by date range. Claude Code deletes its session logs after 30 days by default, so older Claude history can't be rebuilt. |
 | **Logins kept in Windows Credential Manager** | For example, Codex with `cli_auth_credentials_store = keyring`. |
 | **Signed installer and auto-update** | A code-signing certificate and GitHub Releases. Needed before wider distribution. |
 | **Multiple accounts per provider** | One card per account (Claude Swap, Codex Swap, several Codex homes). |
@@ -43,4 +44,4 @@ is promised or scheduled.
 | **Smaller features** | Global shortcut, reordering by drag, sharing a card as an image, proxy support, hiding usage while screen sharing. |
 
 Suggested order: spend tiles first, then Credential Manager logins, then signing and
-auto-update.
+auto-update. Usage history can follow spend tiles, since both read the same session logs.
